@@ -1,0 +1,10 @@
+Revision history for Perl extension DateTime::Event::Sunrise.
+
+0.02   Mon April 21 13:20:00 2003
+        - doc tweaks. Flavio S. Glock
+        - renamed sun_rise_set to sunrise_sunset
+        - gets methods from DateTime::Set
+
+0.01   Mon Mar 21 10:01:50 2003
+	- original version; created by Ron Hill
+
