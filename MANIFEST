@@ -5,3 +5,4 @@ README
 lib/DateTime/Event/Sunrise.pm
 t/00load.t
 t/01basic.t
+META.yml                                 Module meta-data (added by MakeMaker)

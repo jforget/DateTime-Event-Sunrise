@@ -11,7 +11,7 @@ use Params::Validate qw(:all);
 use Set::Infinite qw(inf $inf);
 use vars qw( $VERSION $RADEG $DEGRAD @ISA );
 @ISA     = qw( Exporter );
-$VERSION = '0.05';
+$VERSION = '0.0501';
 $RADEG   = ( 180 / pi );
 $DEGRAD  = ( pi / 180 );
 my $INV360 = ( 1.0 / 360.0 );
@@ -60,9 +60,11 @@ sub sunrise {
     my $self  = $class->new(@_);
     return DateTime::Set->from_recurrence(
       next => sub {
+          return $_[0] if $_[0]->is_infinite;
           $self->_following_sunrise( $_[0] );
       },
       previous => sub {
+          return $_[0] if $_[0]->is_infinite;
           $self->_previous_sunrise( $_[0] );
       } );
 }
@@ -90,9 +92,11 @@ sub sunset {
     my $self  = $class->new(@_);
     return DateTime::Set->from_recurrence(
       next => sub {
+          return $_[0] if $_[0]->is_infinite;
           $self->_following_sunset( $_[0] );
       },
       previous => sub {
+          return $_[0] if $_[0]->is_infinite;
           $self->_previous_sunset( $_[0] );
       } );
 }

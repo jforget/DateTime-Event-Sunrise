@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'		=> 'DateTime::Event::Sunrise',
     'VERSION_FROM'	=> 'lib/DateTime/Event/Sunrise.pm', # finds $VERSION
-    'PREREQ_PM'		=> { 'DateTime::Set' => '0.07',
-                             'DateTime' => '0.17' 
+    'PREREQ_PM'		=> { 'DateTime::Set' => '0.16',
+                             'DateTime' => '0.21' 
                            },
 );

@@ -1,4 +1,9 @@
 Revision history for Perl extension DateTime::Event::Sunrise.
+0.0501  Wed Mar 31 2004
+        - added fix for DateTime-Set after 0.1402
+        - I had to remove one test (the span set test) I need to check
+          to see what is going on I think I need to rewrite this test
+
 0.05    Fri Jan 9 2004
        - Added sunrise_sunset_span method. This will return rise/set time
          for one day (as a span object). Request # 4785 on rt.cpan.org
