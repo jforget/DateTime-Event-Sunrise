@@ -11,7 +11,7 @@ use Params::Validate qw(:all);
 use Set::Infinite qw(inf $inf);
 use vars qw( $VERSION $RADEG $DEGRAD @ISA );
 @ISA     = qw( Exporter );
-$VERSION = '0.04';
+$VERSION = '0.0402';
 $RADEG   = ( 180 / pi );
 $DEGRAD  = ( pi / 180 );
 my $INV360 = ( 1.0 / 360.0 );
@@ -263,15 +263,17 @@ sub _sunrise {
 
     my $self = shift;
     my $dt   = shift;
-
+    my $cloned_dt = $dt->clone;
     my $altit     = $self->{altitude};
     my $iteration = defined( $self->{iteration} ) ? $self->{iteration} : 0;
-
+    $cloned_dt->set_time_zone('floating');
+    
+    
     if ($iteration) {
 
         # This is the initial start
 
-        my $d = days_since_2000_Jan_0($dt) + 0.5 - $self->{longitude} / 360.0;
+        my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
         my ( $tmp_rise_1, $tmp_set_1 ) =
           sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
           15.04107 );
@@ -314,16 +316,13 @@ sub _sunrise {
 
         }
 
-        my ( $hour_rise, $min_rise, $hour_set, $min_set ) =
-          convert_hour( $tmp_rise_3, $tmp_set_3 );
+        my ( $second_rise, $second_set ) = convert_hour( $tmp_rise_3, $tmp_set_3 );
 	  # This is to fix the datetime object to use a duration
 	  # instead of blindly setting the hour/min
-	  my $rise_dur = DateTime::Duration->new( hours   => $hour_rise,
-                                                  minutes => $min_rise); 
-          my $set_dur =  DateTime::Duration->new( hours   => $hour_set,
-                                                  minutes => $min_set);
-	  
-          my $tmp_dt1 = DateTime->new(
+	  my $rise_dur = DateTime::Duration->new( seconds   => $second_rise);
+          my $set_dur =  DateTime::Duration->new( seconds   => $second_set);
+ 
+	  my $tmp_dt1 = DateTime->new(
 		  year      => $dt->year,
 		  month     => $dt->month,
 		  day       => $dt->day,
@@ -334,22 +333,20 @@ sub _sunrise {
 						  
 	  my $rise_time = $tmp_dt1 + $rise_dur;
 	  my $set_time  = $tmp_dt1 + $set_dur;
-
+	  my $tz = $dt->time_zone;
+	  $rise_time->set_time_zone($tz) unless $tz->is_floating;
+	  $set_time->set_time_zone ($tz) unless $tz->is_floating;
         return ( $rise_time, $set_time );
     }
     else {
-        my $d = days_since_2000_Jan_0($dt) + 0.5 - $self->{longitude} / 360.0;
+        my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
         my ( $h1, $h2 ) =
           sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
           15.0 );
-        my ( $hour_rise, $min_rise, $hour_set, $min_set ) =
-          convert_hour( $h1, $h2 );
-          my $rise_dur = DateTime::Duration->new( hours   => $hour_rise,
-                                                  minutes => $min_rise); 
-          my $set_dur =  DateTime::Duration->new( hours   => $hour_set,
-                                                  minutes => $min_set);
-          
-          my $tmp_dt1 = DateTime->new(
+        my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
+	  my $rise_dur = DateTime::Duration->new ( seconds => $seconds_rise); 
+          my $set_dur =  DateTime::Duration->new( seconds   => $seconds_set);
+	  my $tmp_dt1 = DateTime->new(
 		  year      => $dt->year,
 		  month     => $dt->month,
 		  day       => $dt->day,
@@ -360,7 +357,9 @@ sub _sunrise {
           
 	  my $rise_time = $tmp_dt1 + $rise_dur;
 	  my $set_time  = $tmp_dt1 + $set_dur;
-
+	  my $tz = $dt->time_zone;
+	  $rise_time->set_time_zone($tz) unless $tz->is_floating;
+	  $set_time->set_time_zone ($tz) unless $tz->is_floating;
         return ( $rise_time, $set_time );
     }
 
@@ -578,18 +577,17 @@ sub days_since_2000_Jan_0 {
     #
     # day number
     #
+    
     my ($dt) = @_;
 
-    my $base_date = DateTime->new(
-      year      => 2000,
-      month     => 1,
-      day       => 1,
-      time_zone => 'UTC',
-    );
-    my $dur = $dt - $base_date;
+        my $base_date = DateTime->new(
+	     year      => 2000,
+	     month     => 1,
+	     day       => 1,
+	     time_zone => 'UTC',
+	    );
 
-    return $dur->delta_days;
-
+	    return int( $dt->jd - $base_date->jd );
 }
 
 sub sind {
@@ -705,29 +703,20 @@ sub convert_hour {
     # _THEN
     #
     # split out the hours and minites
-    # 
+    # Oct 20 2003
+    # will convert hours to seconds and return this
+    # let DateTime handle the conversion
     #
     # _RETURN
     #
     # hour:min rise and set 
-    #
+    # number of seconds
 
     my ( $hour_rise_ut, $hour_set_ut ) = @_;
+    my $seconds_rise = floor($hour_rise_ut * 60 * 60);
+    my $seconds_set  = floor($hour_set_ut * 60 * 60);
 
-    my $min_rise = abs(int( ( $hour_rise_ut - int($hour_rise_ut) ) * 60 ));
-    my $min_set  = abs(int( ( $hour_set_ut - int($hour_set_ut) ) * 60 ));
-
-    my $hour_rise = int($hour_rise_ut);
-    my $hour_set  = int($hour_set_ut);
-    if ( $min_rise < 10 ) {
-        $min_rise = sprintf( "%02d", $min_rise );
-    }
-
-    if ( $min_set < 10 ) {
-        $min_set = sprintf( "%02d", $min_set );
-    }
-
-    return ( $hour_rise, $min_rise, $hour_set, $min_set );
+    return ( $seconds_rise, $seconds_set );
 }
 
 =head1 NAME
@@ -782,9 +771,9 @@ DateTime::Event::Sunrise - Perl DateTime extension for computing the sunrise/sun
 
 This module will return a DateTime recurrence set for sunrise or sunset.
 
-=head1 USAGE
+=head1 METHODS
 
-=item sunrise sunset
+=head2 sunrise, sunset
 
  my $sunrise = DateTime::Event::Sunrise ->sunrise (
                         longitude => '-118',
@@ -807,12 +796,14 @@ This module will return a DateTime recurrence set for sunrise or sunset.
  Northern latitude is entered as a positive number
  Southern latitude is entered as a negative number
 
+=back
+
 Iteration is set to either 0 or 1.
 If set to 0 no Iteration will occur.
 If set to 1 Iteration will occur.
 Default is 0.
 
-There are a number of sun altitudes to chose from.  The default is
+There are a number of sun altitudes to chose from. The default is
 -0.833 because this is what most countries use. Feel free to
 specify it if you need to. Here is the list of values to specify
 altitude (Altitude) with:
@@ -853,11 +844,7 @@ Astronomical twilight (the sky is completely dark)
 
 =back
 
-=back
-
-F<Notes on Iteration>
-
-=over 4
+=head3 Notes on Iteration
 
 The original method only gives an approximate value of the Sun's rise/set times. 
 The error rarely exceeds one or two minutes, but at high latitudes, when the Midnight Sun 
@@ -865,32 +852,38 @@ soon will start or just has ended, the errors may be much larger. If you want hi
 you must then use the iteration feature. This feature is new as of version 0.7. Here is
 what I have tried to accomplish with this.
 
-a) Compute sunrise or sunset as always, with one exception: to convert LHA from degrees to hours,
-   divide by 15.04107 instead of 15.0 (this accounts for the difference between the solar day 
-   and the sidereal day.
 
-b) Re-do the computation but compute the Sun's RA and Decl, and also GMST0, for the moment 
-   of sunrise or sunset last computed.
+=over 4
 
-c) Iterate b) until the computed sunrise or sunset no longer changes significantly. 
-   Usually 2 iterations are enough, in rare cases 3 or 4 iterations may be needed.
+=item a)
+
+Compute sunrise or sunset as always, with one exception: to convert LHA from degrees to hours,
+divide by 15.04107 instead of 15.0 (this accounts for the difference between the solar day 
+and the sidereal day.
+
+=item b)
+
+Re-do the computation but compute the Sun's RA and Decl, and also GMST0, for the moment 
+of sunrise or sunset last computed.
+
+=item c)
+
+Iterate b) until the computed sunrise or sunset no longer changes significantly. 
+Usually 2 iterations are enough, in rare cases 3 or 4 iterations may be needed.
 
 =back
 
-=item next current previous contains as_list iterator
+=head2 next current previous contains as_list iterator
 
 See DateTime::Set.
 
-=item ($sunrise, $sunset) = $sunrise_object->($dt);
+=head2 ($sunrise, $sunset) = $sunrise_object->($dt);
 
 Internal method.
 
 Returns two DateTime objects sunrise and sunset.
 Please note that the time zone for these objects
 is set to UTC. So don't forget to set your timezone!!
-
-=back
-
 
 =head1 AUTHOR
 
@@ -899,24 +892,32 @@ rkhill@firstlight.net
 
 =head1 SPECIAL THANKS
 
-Robert Creager [Astro-Sunrise@LogicalChaos.org]
-For providing help with converting Paul's C code to perl
+=over 4
 
-Flavio S. Glock [fglock@pucrs.br]
+=item Robert Creager [Astro-Sunrise@LogicalChaos.org]
 
-For providing the the interface to the DateTime::Set
-Module
+for providing help with converting Paul's C code to perl.
+
+=item Flavio S. Glock [fglock@pucrs.br]
+
+for providing the the interface to the DateTime::Set
+module.
+
+=back
 
 =head1 CREDITS
 
+=over 4
 
-=item  Paul Schlyer, Stockholm, Sweden 
+=item Paul Schlyer, Stockholm, Sweden 
 
 for his excellent web page on the subject.
 
 =item Rich Bowen (rbowen@rbowen.com)
 
-for suggestions
+for suggestions.
+
+=back
 
 =head1 COPYRIGHT and LICENSE
 
