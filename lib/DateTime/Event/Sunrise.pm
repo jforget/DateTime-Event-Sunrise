@@ -2,15 +2,16 @@ package DateTime::Event::Sunrise;
 
 use strict;
 require Exporter;
-use POSIX;
+use POSIX qw(floor);
 use Math::Trig;
 use Carp;
 use DateTime;
 use DateTime::Set;
 use Params::Validate qw(:all);
+use Set::Infinite qw(inf $inf);
 use vars qw( $VERSION $RADEG $DEGRAD @ISA );
 @ISA     = qw( Exporter );
-$VERSION = '0.03';
+$VERSION = '0.04';
 $RADEG   = ( 180 / pi );
 $DEGRAD  = ( pi / 180 );
 my $INV360 = ( 1.0 / 360.0 );
@@ -251,7 +252,10 @@ sub _sunrise {
     # by 15.04107 instead of 15.0) then recompute rise/set time
     # using exact moment last computed. IF iteration is set
     # to zero devide by 15.0 (only once)
-    #
+    # 
+    # Bug in this sub, I was blindly setting the hour and min without
+    # checking if it was neg. a neg. value for hours/min is not correct
+    # I changed the routine to use a duration then add the duration.
     # _RETURN
     # 
     # two DateTime objects the date and time for sunrise and sunset
@@ -312,22 +316,24 @@ sub _sunrise {
 
         my ( $hour_rise, $min_rise, $hour_set, $min_set ) =
           convert_hour( $tmp_rise_3, $tmp_set_3 );
-        my $rise_time = DateTime->new(
-          year      => $dt->year,
-          month     => $dt->month,
-          day       => $dt->day,
-          hour      => $hour_rise,
-          minute    => $min_rise,
-          time_zone => 'UTC'
-        );
-        my $set_time = DateTime->new(
-          year      => $dt->year,
-          month     => $dt->month,
-          day       => $dt->day,
-          hour      => $hour_set,
-          minute    => $min_set,
-          time_zone => 'UTC'
-        );
+	  # This is to fix the datetime object to use a duration
+	  # instead of blindly setting the hour/min
+	  my $rise_dur = DateTime::Duration->new( hours   => $hour_rise,
+                                                  minutes => $min_rise); 
+          my $set_dur =  DateTime::Duration->new( hours   => $hour_set,
+                                                  minutes => $min_set);
+	  
+          my $tmp_dt1 = DateTime->new(
+		  year      => $dt->year,
+		  month     => $dt->month,
+		  day       => $dt->day,
+		  hour      => 0,
+		  minute    => 0,
+		  time_zone => 'UTC'
+		   );						  
+						  
+	  my $rise_time = $tmp_dt1 + $rise_dur;
+	  my $set_time  = $tmp_dt1 + $set_dur;
 
         return ( $rise_time, $set_time );
     }
@@ -338,23 +344,22 @@ sub _sunrise {
           15.0 );
         my ( $hour_rise, $min_rise, $hour_set, $min_set ) =
           convert_hour( $h1, $h2 );
-
-        my $rise_time = DateTime->new(
-          year      => $dt->year,
-          month     => $dt->month,
-          day       => $dt->day,
-          hour      => $hour_rise,
-          minute    => $min_rise,
-          time_zone => 'UTC'
-        );
-        my $set_time = DateTime->new(
-          year      => $dt->year,
-          month     => $dt->month,
-          day       => $dt->day,
-          hour      => $hour_set,
-          minute    => $min_set,
-          time_zone => 'UTC'
-        );
+          my $rise_dur = DateTime::Duration->new( hours   => $hour_rise,
+                                                  minutes => $min_rise); 
+          my $set_dur =  DateTime::Duration->new( hours   => $hour_set,
+                                                  minutes => $min_set);
+          
+          my $tmp_dt1 = DateTime->new(
+		  year      => $dt->year,
+		  month     => $dt->month,
+		  day       => $dt->day,
+		  hour      => 0,
+		  minute    => 0,
+		  time_zone => 'UTC'
+		   );
+          
+	  my $rise_time = $tmp_dt1 + $rise_dur;
+	  my $set_time  = $tmp_dt1 + $set_dur;
 
         return ( $rise_time, $set_time );
     }
@@ -399,12 +404,12 @@ sub sunrise_sunset {
 
     my $t;
     if ( $cost >= 1.0 ) {
-        carp "Sun never rises!!\n";
-        $t = 0.0;    # Sun always below altit
+	carp "Sun never rises!!\n";
+	$t = 0.0;    # Sun always below altit
     }
     elsif ( $cost <= -1.0 ) {
-        carp "Sun never sets!!\n";
-        $t = 12.0;    # Sun always above altit
+	carp "Sun never sets!!\n";
+	$t = 12.0;    # Sun always above altit
     }
     else {
         $t = acosd($cost) / 15.0;    # The diurnal arc, hours
@@ -709,8 +714,8 @@ sub convert_hour {
 
     my ( $hour_rise_ut, $hour_set_ut ) = @_;
 
-    my $min_rise = int( ( $hour_rise_ut - int($hour_rise_ut) ) * 60 );
-    my $min_set  = int( ( $hour_set_ut - int($hour_set_ut) ) * 60 );
+    my $min_rise = abs(int( ( $hour_rise_ut - int($hour_rise_ut) ) * 60 ));
+    my $min_set  = abs(int( ( $hour_set_ut - int($hour_set_ut) ) * 60 ));
 
     my $hour_rise = int($hour_rise_ut);
     my $hour_set  = int($hour_set_ut);

@@ -1,5 +1,13 @@
 Revision history for Perl extension DateTime::Event::Sunrise.
+0.04   Fri May 30 7:40 2003
+       - Fixed a bug in _sunrise 
+         The problem was I was setting the hous/min for the rise/set times
+         I needed to create a duration and add the duration to the DateTime
+         Object.
 
+0.03   Tues April 29 14:00 2003
+       - initial release to CPAN
+       
 0.02   Mon April 21 13:20:00 2003
         - doc tweaks. Flavio S. Glock
         - renamed sun_rise_set to sunrise_sunset

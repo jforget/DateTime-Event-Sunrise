@@ -1,4 +1,4 @@
-DateTime/Event/Sunrise version 0.01
+DateTime/Event/Sunrise version 0.03
 ===================================
 
 This module will return a DateTime Object for sunrise and sunset for a
@@ -16,8 +16,8 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  DateTime.pm version 0.07 
-
+  DateTime.pm   
+  DateTime-Set
 COPYRIGHT AND LICENCE
 
 Same as perl
