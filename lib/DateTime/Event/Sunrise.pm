@@ -11,14 +11,14 @@ use Params::Validate qw(:all);
 use Set::Infinite qw(inf $inf);
 use vars qw( $VERSION $RADEG $DEGRAD @ISA );
 @ISA     = qw( Exporter );
-$VERSION = '0.0402';
+$VERSION = '0.05';
 $RADEG   = ( 180 / pi );
 $DEGRAD  = ( pi / 180 );
 my $INV360 = ( 1.0 / 360.0 );
 
 my $upper_limb = '1';
 
-sub _new {
+sub new {
     my $class = shift;
 
     my %args = validate(
@@ -38,6 +38,7 @@ sub _new {
 }
 
 sub sunrise {
+
     #
     #
     # FUNCTIONAL SEQUENCE for sunrise 
@@ -55,9 +56,8 @@ sub sunrise {
     # A new DateTime::Set recurrence object 
     #
 
-
     my $class = shift;
-    my $self = $class->_new( @_ );
+    my $self  = $class->new(@_);
     return DateTime::Set->from_recurrence(
       next => sub {
           $self->_following_sunrise( $_[0] );
@@ -66,7 +66,6 @@ sub sunrise {
           $self->_previous_sunrise( $_[0] );
       } );
 }
-
 
 sub sunset {
 
@@ -88,7 +87,7 @@ sub sunset {
     #
 
     my $class = shift;
-    my $self = $class->_new( @_ );
+    my $self  = $class->new(@_);
     return DateTime::Set->from_recurrence(
       next => sub {
           $self->_following_sunset( $_[0] );
@@ -98,8 +97,108 @@ sub sunset {
       } );
 }
 
+sub sunset_datetime {
+
+    #
+    #
+    # FUNCTIONAL SEQUENCE for sunrise_sunset 
+    #
+    # _GIVEN
+    # 
+    # A sunrise class
+    # A DateTime object
+    # 
+    # _THEN
+    #
+    #  Validate the DateTime object is valid  
+    #  Compute sunrise and sunset  
+    #      
+    #
+    # _RETURN
+    #
+    #  DateTime object that contains the set time
+    #
+    my $self  = shift;
+    my $dt    = shift;
+    my $class = ref($dt);
+
+    if ( $class ne 'DateTime' ) {
+        croak("Dates need to be DateTime objects");
+    }
+    my ( undef, $tmp_set ) = _sunrise( $self, $dt );
+    return $tmp_set;
+}
+
+sub sunrise_datetime {
+
+    #
+    #
+    # FUNCTIONAL SEQUENCE for sunrise_sunset 
+    #
+    # _GIVEN
+    # 
+    # A sunrise class
+    # A DateTime object
+    # 
+    # _THEN
+    #
+    #  Validate the DateTime object is valid  
+    #  Compute sunrise and sunset  
+    #      
+    #
+    # _RETURN
+    #
+    #  DateTime object that contains the rise times
+    #
+    my $self  = shift;
+    my $dt    = shift;
+    my $class = ref($dt);
+
+    if ( $class ne 'DateTime' ) {
+        croak("Dates need to be DateTime objects");
+    }
+    my ( $tmp_rise, undef ) = _sunrise( $self, $dt );
+    return $tmp_rise;
+}
+
+sub sunrise_sunset_span {
+
+    #
+    #
+    # FUNCTIONAL SEQUENCE for sunrise_sunset 
+    #
+    # _GIVEN
+    # 
+    # A sunrise class
+    # A DateTime object
+    # 
+    # _THEN
+    #
+    #  Validate the DateTime object is valid  
+    #  Compute sunrise and sunset  
+    #      
+    #
+    # _RETURN
+    #
+    #  DateTime Span object that contains the rise/set times
+    #
+    my $self  = shift;
+    my $dt    = shift;
+    my $class = ref($dt);
+
+    if ( $class ne 'DateTime' ) {
+        croak("Dates need to be DateTime objects");
+    }
+    my ( $tmp_rise, $tmp_set ) = _sunrise( $self, $dt );
+
+    return DateTime::Span->from_datetimes(
+      start => $tmp_rise,
+      end   => $tmp_set
+    );
+}
 
 sub _following_sunrise {
+
     #
     #
     # FUNCTIONAL SEQUENCE for _following_sunrise 
@@ -136,6 +235,7 @@ sub _following_sunrise {
 }
 
 sub _previous_sunrise {
+
     #
     #
     # FUNCTIONAL SEQUENCE for _previous_sunrise 
@@ -170,6 +270,7 @@ sub _previous_sunrise {
 }
 
 sub _following_sunset {
+
     #
     #
     # FUNCTIONAL SEQUENCE for _following_sunset  
@@ -204,6 +305,7 @@ sub _following_sunset {
 }
 
 sub _previous_sunset {
+
     #
     #
     # FUNCTIONAL SEQUENCE for _previous_sunset 
@@ -238,12 +340,13 @@ sub _previous_sunset {
 }
 
 sub _sunrise {
+
     #
     #
     # FUNCTIONAL SEQUENCE for _sunrise 
     #
     # _GIVEN
-    #  A sunrise class DateTime object
+    #  A sunrise class DateTime object and a DateTime object
     #
     # _THEN
     #
@@ -256,29 +359,30 @@ sub _sunrise {
     # Bug in this sub, I was blindly setting the hour and min without
     # checking if it was neg. a neg. value for hours/min is not correct
     # I changed the routine to use a duration then add the duration.
+    #
     # _RETURN
     # 
     # two DateTime objects the date and time for sunrise and sunset
     #
 
-    my $self = shift;
-    my $dt   = shift;
+    my $self      = shift;
+    my $dt        = shift;
     my $cloned_dt = $dt->clone;
     my $altit     = $self->{altitude};
     my $iteration = defined( $self->{iteration} ) ? $self->{iteration} : 0;
     $cloned_dt->set_time_zone('floating');
-    
-    
+
     if ($iteration) {
 
         # This is the initial start
 
-        my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
+        my $d =
+          days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
         my ( $tmp_rise_1, $tmp_set_1 ) =
-          sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
+          _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
           15.04107 );
 
-        # Now we have the initial rise/set times next recompute d using the exact moment
+# Now we have the initial rise/set times next recompute d using the exact moment
         # recompute sunrise
 
         my $tmp_rise_2 = 9;
@@ -287,14 +391,13 @@ sub _sunrise {
 
             my $d_sunrise_1 = $d + $tmp_rise_1 / 24.0;
             ( $tmp_rise_2, undef ) =
-              sunrise_sunset( $d_sunrise_1, $self->{longitude}, $self->{latitude},
-              $altit, 15.04107 );
+              _sunrise_sunset( $d_sunrise_1, $self->{longitude},
+              $self->{latitude}, $altit, 15.04107 );
             $tmp_rise_1 = $tmp_rise_3;
             my $d_sunrise_2 = $d + $tmp_rise_2 / 24.0;
             ( $tmp_rise_3, undef ) =
-              sunrise_sunset( $d_sunrise_2, $self->{longitude}, $self->{latitude},
-              $altit, 15.04107 );
-
+              _sunrise_sunset( $d_sunrise_2, $self->{longitude},
+              $self->{latitude}, $altit, 15.04107 );
 
         }
 
@@ -305,67 +408,70 @@ sub _sunrise {
 
             my $d_sunset_1 = $d + $tmp_set_1 / 24.0;
             ( undef, $tmp_set_2 ) =
-              sunrise_sunset( $d_sunset_1, $self->{longitude}, $self->{latitude},
-              $altit, 15.04107 );
+              _sunrise_sunset( $d_sunset_1, $self->{longitude},
+              $self->{latitude}, $altit, 15.04107 );
             $tmp_set_1 = $tmp_set_3;
             my $d_sunset_2 = $d + $tmp_set_2 / 24.0;
             ( undef, $tmp_set_3 ) =
-              sunrise_sunset( $d_sunset_2, $self->{longitude}, $self->{latitude},
-              $altit, 15.04107 );
-
+              _sunrise_sunset( $d_sunset_2, $self->{longitude},
+              $self->{latitude}, $altit, 15.04107 );
 
         }
 
-        my ( $second_rise, $second_set ) = convert_hour( $tmp_rise_3, $tmp_set_3 );
-	  # This is to fix the datetime object to use a duration
-	  # instead of blindly setting the hour/min
-	  my $rise_dur = DateTime::Duration->new( seconds   => $second_rise);
-          my $set_dur =  DateTime::Duration->new( seconds   => $second_set);
- 
-	  my $tmp_dt1 = DateTime->new(
-		  year      => $dt->year,
-		  month     => $dt->month,
-		  day       => $dt->day,
-		  hour      => 0,
-		  minute    => 0,
-		  time_zone => 'UTC'
-		   );						  
-						  
-	  my $rise_time = $tmp_dt1 + $rise_dur;
-	  my $set_time  = $tmp_dt1 + $set_dur;
-	  my $tz = $dt->time_zone;
-	  $rise_time->set_time_zone($tz) unless $tz->is_floating;
-	  $set_time->set_time_zone ($tz) unless $tz->is_floating;
+        my ( $second_rise, $second_set ) =
+          convert_hour( $tmp_rise_3, $tmp_set_3 );
+
+        # This is to fix the datetime object to use a duration
+        # instead of blindly setting the hour/min
+        my $rise_dur = DateTime::Duration->new( seconds => $second_rise );
+        my $set_dur  = DateTime::Duration->new( seconds => $second_set );
+
+        my $tmp_dt1 = DateTime->new(
+          year      => $dt->year,
+          month     => $dt->month,
+          day       => $dt->day,
+          hour      => 0,
+          minute    => 0,
+          time_zone => 'UTC'
+        );
+
+        my $rise_time = $tmp_dt1 + $rise_dur;
+        my $set_time  = $tmp_dt1 + $set_dur;
+        my $tz        = $dt->time_zone;
+        $rise_time->set_time_zone($tz) unless $tz->is_floating;
+        $set_time->set_time_zone($tz) unless $tz->is_floating;
         return ( $rise_time, $set_time );
     }
     else {
-        my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
+        my $d =
+          days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
         my ( $h1, $h2 ) =
-          sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
+          _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
           15.0 );
         my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
-	  my $rise_dur = DateTime::Duration->new ( seconds => $seconds_rise); 
-          my $set_dur =  DateTime::Duration->new( seconds   => $seconds_set);
-	  my $tmp_dt1 = DateTime->new(
-		  year      => $dt->year,
-		  month     => $dt->month,
-		  day       => $dt->day,
-		  hour      => 0,
-		  minute    => 0,
-		  time_zone => 'UTC'
-		   );
-          
-	  my $rise_time = $tmp_dt1 + $rise_dur;
-	  my $set_time  = $tmp_dt1 + $set_dur;
-	  my $tz = $dt->time_zone;
-	  $rise_time->set_time_zone($tz) unless $tz->is_floating;
-	  $set_time->set_time_zone ($tz) unless $tz->is_floating;
+        my $rise_dur = DateTime::Duration->new( seconds => $seconds_rise );
+        my $set_dur  = DateTime::Duration->new( seconds => $seconds_set );
+        my $tmp_dt1  = DateTime->new(
+          year      => $dt->year,
+          month     => $dt->month,
+          day       => $dt->day,
+          hour      => 0,
+          minute    => 0,
+          time_zone => 'UTC'
+        );
+
+        my $rise_time = $tmp_dt1 + $rise_dur;
+        my $set_time  = $tmp_dt1 + $set_dur;
+        my $tz        = $dt->time_zone;
+        $rise_time->set_time_zone($tz) unless $tz->is_floating;
+        $set_time->set_time_zone($tz) unless $tz->is_floating;
         return ( $rise_time, $set_time );
     }
 
 }
 
-sub sunrise_sunset {
+sub _sunrise_sunset {
+
     #
     #
     # FUNCTIONAL SEQUENCE for sunrise_sunset 
@@ -379,7 +485,7 @@ sub sunrise_sunset {
     #      
     # _RETURN
     #
-    # Two new DateTime objects rise and set times 
+    #  rise and set times as hours (GMT Time) 
     #
 
     my ( $d, $lon, $lat, $altit, $h ) = @_;
@@ -403,12 +509,12 @@ sub sunrise_sunset {
 
     my $t;
     if ( $cost >= 1.0 ) {
-	carp "Sun never rises!!\n";
-	$t = 0.0;    # Sun always below altit
+        carp "Sun never rises!!\n";
+        $t = 0.0;    # Sun always below altit
     }
     elsif ( $cost <= -1.0 ) {
-	carp "Sun never sets!!\n";
-	$t = 12.0;    # Sun always above altit
+        carp "Sun never sets!!\n";
+        $t = 12.0;    # Sun always above altit
     }
     else {
         $t = acosd($cost) / 15.0;    # The diurnal arc, hours
@@ -422,7 +528,6 @@ sub sunrise_sunset {
 
 }
 
-#########################################################################################################
 sub GMST0 {
 
     #
@@ -577,17 +682,17 @@ sub days_since_2000_Jan_0 {
     #
     # day number
     #
-    
+
     my ($dt) = @_;
 
-        my $base_date = DateTime->new(
-	     year      => 2000,
-	     month     => 1,
-	     day       => 1,
-	     time_zone => 'UTC',
-	    );
+    my $base_date = DateTime->new(
+      year      => 2000,
+      month     => 1,
+      day       => 1,
+      time_zone => 'UTC',
+    );
 
-	    return int( $dt->jd - $base_date->jd );
+    return int( $dt->jd - $base_date->jd );
 }
 
 sub sind {
@@ -709,12 +814,11 @@ sub convert_hour {
     #
     # _RETURN
     #
-    # hour:min rise and set 
     # number of seconds
 
     my ( $hour_rise_ut, $hour_set_ut ) = @_;
-    my $seconds_rise = floor($hour_rise_ut * 60 * 60);
-    my $seconds_set  = floor($hour_set_ut * 60 * 60);
+    my $seconds_rise = floor( $hour_rise_ut * 60 * 60 );
+    my $seconds_set  = floor( $hour_set_ut * 60 * 60 );
 
     return ( $seconds_rise, $seconds_set );
 }
@@ -767,13 +871,38 @@ DateTime::Event::Sunrise - Perl DateTime extension for computing the sunrise/sun
      start_set => $sunrise, end_set => $sunset );
  print $day_set->contains( $dt ) ? 'day' : 'night';
 
+
+my $dt = DateTime->new( year   => 2000,
+		 month  => 6,
+		 day    => 20,
+                 time_zone => 'America/Los_Angeles',
+                  );
+
+my $sunrise = DateTime::Event::Sunrise ->new(
+                     longitude =>'-118' ,
+		     latitude => '33',
+		     altitude => '-0.833',
+	             iteration => '1'
+                     
+);
+
+my $tmp = $sunrise->sunrise_sunset_span($dt);
+print "Sunrise is:" , $tmp->start->datetime , "\n";
+print "Sunset is:" , $tmp->end->datetime;
+
+my $dt1 = $sunrise->sunrise_datetime( $dt );
+print "Sunrise is:" , $dt1->datetime  , "\n";
+my $dt2 = $sunrise->sunset_datetime( $dt );
+print "Sunset is:" ,  $dt2->datetime , "\n";
+
+
 =head1 DESCRIPTION
 
 This module will return a DateTime recurrence set for sunrise or sunset.
 
 =head1 METHODS
 
-=head2 sunrise, sunset
+=head2 sunrise, sunset, sunrise_sunset_span, sunrise_datetime, sunset_datetime
 
  my $sunrise = DateTime::Event::Sunrise ->sunrise (
                         longitude => '-118',
@@ -788,6 +917,21 @@ This module will return a DateTime recurrence set for sunrise or sunset.
 	                altitude =>  '-0.833',
 	                iteration => '1'
 		   );
+ my $sunrise_span = DateTime::Event::Sunrise ->new (
+	                longitude => '-118',
+	                latitude =>  '33',
+	                altitude =>  '-0.833',
+	                iteration => '1'
+		   );
+ my $both_times = $sunrise_span->sunrise_sunset_span($dt);
+ print "Sunrise is:" , $both_times->start->datetime;
+ print "Sunset is:" , $both_times->end->datetime;
+
+ my $dt1 = $sunrise->sunrise_datetime( $dt );
+ print "Sunrise is:" , $dt1->datetime  , "\n";
+ my $dt2 = $sunrise->sunset_datetime( $dt );
+ print "Sunset is:" ,  $dt2->datetime , "\n";
+
 
 =over 4
 
@@ -960,6 +1104,5 @@ DateTime::Set documentation
 DateTime::SpanSet documentation
 
 =cut
-
 1;
 

@@ -7,7 +7,7 @@ use DateTime::Span;
 use DateTime::SpanSet;
 use DateTime::Event::Sunrise;
 
-BEGIN { plan tests => 253 }
+BEGIN { plan tests => 255 }
 my $dt = DateTime->new( year   => 2000,
 		 month  => 6,
 		 day    => 20,
@@ -73,6 +73,16 @@ for (1..2) {
 }
 my $res = join( ' ', @res );
 ok( $res eq '2000-06-20T05:43:43 2000-06-21T05:43:43');
+
+my $sun = DateTime::Event::Sunrise ->new(
+                     longitude =>'-118' ,
+		     latitude => '33',
+);
+
+my $tmp_set = $sun->sunrise_sunset_span($dt);
+$tmp_set->set_time_zone('America/Los_Angeles');
+ok( $tmp_set->start->datetime eq '2000-06-20T05:43:31');
+ok( $tmp_set->end->datetime eq '2000-06-20T20:03:24');
 
 use vars qw($long $lat $offset);
 
