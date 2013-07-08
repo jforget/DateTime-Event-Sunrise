@@ -1,3 +1,21 @@
+#
+#     Perl DateTime extension for computing the sunrise/sunset on a given day
+#     Copyright (C) 1999-2013 Ron Hill and Jean Forget
+# 
+#     This program is free software; you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation; either version 1, or (at your option)
+#     any later version.
+# 
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+# 
+#     You should have received a copy of the GNU General Public License
+#     along with this program; if not, write to the Free Software Foundation,
+#     Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+#
 package DateTime::Event::Sunrise;
 
 use strict;
@@ -37,8 +55,6 @@ sub new {
     return bless \%args, $class;
 }
 
-sub sunrise {
-
     #
     #
     # FUNCTIONAL SEQUENCE for sunrise 
@@ -55,6 +71,7 @@ sub sunrise {
     #
     # A new DateTime::Set recurrence object 
     #
+sub sunrise {
 
     my $class = shift;
     my $self  = $class->new(@_);
@@ -68,8 +85,6 @@ sub sunrise {
           $self->_previous_sunrise( $_[0] );
       } );
 }
-
-sub sunset {
 
     #
     #
@@ -87,6 +102,7 @@ sub sunset {
     #
     # A new DateTime::Set recurrence object
     #
+sub sunset {
 
     my $class = shift;
     my $self  = $class->new(@_);
@@ -100,8 +116,6 @@ sub sunset {
           $self->_previous_sunset( $_[0] );
       } );
 }
-
-sub sunset_datetime {
 
     #
     #
@@ -122,6 +136,8 @@ sub sunset_datetime {
     #
     #  DateTime object that contains the set time
     #
+sub sunset_datetime {
+
     my $self  = shift;
     my $dt    = shift;
     my $class = ref($dt);
@@ -132,8 +148,6 @@ sub sunset_datetime {
     my ( undef, $tmp_set ) = _sunrise( $self, $dt );
     return $tmp_set;
 }
-
-sub sunrise_datetime {
 
     #
     #
@@ -154,6 +168,8 @@ sub sunrise_datetime {
     #
     #  DateTime object that contains the rise times
     #
+sub sunrise_datetime {
+
     my $self  = shift;
     my $dt    = shift;
     my $class = ref($dt);
@@ -164,8 +180,6 @@ sub sunrise_datetime {
     my ( $tmp_rise, undef ) = _sunrise( $self, $dt );
     return $tmp_rise;
 }
-
-sub sunrise_sunset_span {
 
     #
     #
@@ -186,6 +200,8 @@ sub sunrise_sunset_span {
     #
     #  DateTime Span object that contains the rise/set times
     #
+sub sunrise_sunset_span {
+
     my $self  = shift;
     my $dt    = shift;
     my $class = ref($dt);
@@ -200,8 +216,6 @@ sub sunrise_sunset_span {
       end   => $tmp_set
     );
 }
-
-sub _following_sunrise {
 
     #
     #
@@ -223,6 +237,7 @@ sub _following_sunrise {
     #
     #  A new DateTime object that contains the rise time
     #
+sub _following_sunrise {
 
     my $self = shift;
     my $dt   = shift;
@@ -237,8 +252,6 @@ sub _following_sunrise {
     ( $tmp_rise, undef ) = _sunrise( $self, $new_dt );
     return $tmp_rise;
 }
-
-sub _previous_sunrise {
 
     #
     #
@@ -258,6 +271,7 @@ sub _previous_sunrise {
     #
     # A new DateTime Object that contains the rise time 
     #
+sub _previous_sunrise {
 
     my $self = shift;
     my $dt   = shift;
@@ -272,8 +286,6 @@ sub _previous_sunrise {
     ( $tmp_rise, undef ) = _sunrise( $self, $new_dt );
     return $tmp_rise;
 }
-
-sub _following_sunset {
 
     #
     #
@@ -293,6 +305,7 @@ sub _following_sunset {
     #
     #  A DateTime object with set time
     #
+sub _following_sunset {
 
     my $self = shift;
     my $dt   = shift;
@@ -307,8 +320,6 @@ sub _following_sunset {
     ( undef, $tmp_set ) = _sunrise( $self, $new_dt );
     return $tmp_set;
 }
-
-sub _previous_sunset {
 
     #
     #
@@ -328,6 +339,7 @@ sub _previous_sunset {
     #
     # A DateTime object with set time 
     #
+sub _previous_sunset {
 
     my $self = shift;
     my $dt   = shift;
@@ -342,8 +354,6 @@ sub _previous_sunset {
     ( undef, $tmp_set ) = _sunrise( $self, $new_dt );
     return $tmp_set;
 }
-
-sub _sunrise {
 
     #
     #
@@ -368,6 +378,7 @@ sub _sunrise {
     # 
     # two DateTime objects the date and time for sunrise and sunset
     #
+sub _sunrise {
 
     my $self      = shift;
     my $dt        = shift;
@@ -474,8 +485,6 @@ sub _sunrise {
 
 }
 
-sub _sunrise_sunset {
-
     #
     #
     # FUNCTIONAL SEQUENCE for sunrise_sunset 
@@ -491,6 +500,7 @@ sub _sunrise_sunset {
     #
     #  rise and set times as hours (GMT Time) 
     #
+sub _sunrise_sunset {
 
     my ( $d, $lon, $lat, $altit, $h ) = @_;
 
@@ -539,8 +549,6 @@ sub _sunrise_sunset {
 
 }
 
-sub GMST0 {
-
     #
     #
     # FUNCTIONAL SEQUENCE for GMST0 
@@ -560,6 +568,8 @@ sub GMST0 {
     #
     # Sidtime
     #
+sub GMST0 {
+
     my ($d) = @_;
 
     my $sidtim0 =
@@ -568,8 +578,6 @@ sub GMST0 {
     return $sidtim0;
 
 }
-
-sub sunpos {
 
     #
     #
@@ -590,6 +598,8 @@ sub sunpos {
     # ecliptic longitude and distance
     # ie. $True_solar_longitude, $Solar_distance
     #
+sub sunpos {
+
     my ($d) = @_;
 
     #                       Mean anomaly of the Sun 
@@ -630,8 +640,6 @@ sub sunpos {
     return ( $Solar_distance, $True_solar_longitude );
 }
 
-sub sun_RA_dec {
-
     #
     #
     # FUNCTIONAL SEQUENCE for sun_RA_dec 
@@ -649,6 +657,8 @@ sub sun_RA_dec {
     # Sun's Right Ascension (RA), Declination (dec) and distance (r)
     # 
     #
+sub sun_RA_dec {
+
     my ($d) = @_;
 
     # Compute Sun's ecliptical coordinates 
@@ -673,8 +683,6 @@ sub sun_RA_dec {
 
 }    # sun_RA_dec
 
-sub days_since_2000_Jan_0 {
-
     #
     #
     # FUNCTIONAL SEQUENCE for days_since_2000_Jan_0 
@@ -693,6 +701,7 @@ sub days_since_2000_Jan_0 {
     #
     # day number
     #
+sub days_since_2000_Jan_0 {
 
     my ($dt) = @_;
 
@@ -734,8 +743,6 @@ sub atan2d {
     ( $RADEG * atan2( $_[0], $_[1] ) );
 }
 
-sub revolution {
-
     #
     #
     # FUNCTIONAL SEQUENCE for revolution
@@ -753,12 +760,11 @@ sub revolution {
     #
     # the value of the input is >= 0.0 and < 360.0
     #
+sub revolution {
 
     my $x = $_[0];
     return ( $x - 360.0 * floor( $x * $INV360 ) );
 }
-
-sub rev180 {
 
     #
     #
@@ -777,12 +783,12 @@ sub rev180 {
     #
     # angle that was reduced
     #
+sub rev180 {
+
     my ($x) = @_;
 
     return ( $x - 360.0 * floor( $x * $INV360 + 0.5 ) );
 }
-
-sub equal {
 
     #
     #
@@ -801,12 +807,12 @@ sub equal {
     #
     # True if the numbers are equal 
     #
+sub equal {
+
     my ( $A, $B, $dp ) = @_;
 
     return sprintf( "%.${dp}g", $A ) eq sprintf( "%.${dp}g", $B );
 }
-
-sub convert_hour {
 
     #
     #
@@ -826,6 +832,7 @@ sub convert_hour {
     # _RETURN
     #
     # number of seconds
+sub convert_hour {
 
     my ( $hour_rise_ut, $hour_set_ut ) = @_;
     my $seconds_rise = floor( $hour_rise_ut * 60 * 60 );
@@ -833,6 +840,8 @@ sub convert_hour {
 
     return ( $seconds_rise, $seconds_set );
 }
+
+1962; # Hint: by RZ, better known as BD
 
 =head1 NAME
 
@@ -1071,7 +1080,7 @@ module.
 
 =over 4
 
-=item Paul Schlyer, Stockholm, Sweden 
+=item Paul Schlyter, Stockholm, Sweden 
 
 for his excellent web page on the subject.
 
@@ -1083,7 +1092,7 @@ for suggestions.
 
 =head1 COPYRIGHT and LICENSE
 
-Here is the copyright information provided by Paul Schlyer:
+Here is the copyright information provided by Paul Schlyter:
 
 Written as DAYLEN.C, 1989-08-16
 
@@ -1121,8 +1130,7 @@ DateTime::Set documentation
 
 DateTime::SpanSet documentation
 
-Paul Shlyter's homepage at http://stjarnhimlen.se/english.html
+Paul Schlyter's homepage at http://stjarnhimlen.se/english.html
 
 =cut
-1;
 
