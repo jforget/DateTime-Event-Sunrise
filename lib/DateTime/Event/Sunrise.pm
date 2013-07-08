@@ -11,7 +11,7 @@ use Params::Validate qw(:all);
 use Set::Infinite qw(inf $inf);
 use vars qw( $VERSION $RADEG $DEGRAD @ISA );
 @ISA     = qw( Exporter );
-$VERSION = '0.0501';
+$VERSION = '0.0502';
 $RADEG   = ( 180 / pi );
 $DEGRAD  = ( pi / 180 );
 my $INV360 = ( 1.0 / 360.0 );
@@ -126,7 +126,7 @@ sub sunset_datetime {
     my $dt    = shift;
     my $class = ref($dt);
 
-    if ( $class ne 'DateTime' ) {
+    if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
     my ( undef, $tmp_set ) = _sunrise( $self, $dt );
@@ -158,7 +158,7 @@ sub sunrise_datetime {
     my $dt    = shift;
     my $class = ref($dt);
 
-    if ( $class ne 'DateTime' ) {
+    if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
     my ( $tmp_rise, undef ) = _sunrise( $self, $dt );
@@ -190,7 +190,7 @@ sub sunrise_sunset_span {
     my $dt    = shift;
     my $class = ref($dt);
 
-    if ( $class ne 'DateTime' ) {
+    if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
     my ( $tmp_rise, $tmp_set ) = _sunrise( $self, $dt );
@@ -494,18 +494,25 @@ sub _sunrise_sunset {
 
     my ( $d, $lon, $lat, $altit, $h ) = @_;
 
+    # Compute local sidereal time of this moment
     my $sidtime = revolution( GMST0($d) + 180.0 + $lon );
 
-    my ( $sRA, $sdec ) = sun_RA_dec($d);
-    my $tsouth  = 12.0 - rev180( $sidtime - $sRA ) / $h;
-    my $sradius = 0.2666 / $sRA;
+    # Compute Sun's RA + Decl + distance at this moment
+    my ( $sRA, $sdec, $sr ) = sun_RA_dec($d);
 
+    # Compute time when Sun is at south - in hours UT
+    my $tsouth  = 12.0 - rev180( $sidtime - $sRA ) / $h;
+
+    # Compute the Sun's apparent radius, degrees
+    my $sradius = 0.2666 / $sr;
+
+    # Do correction to upper limb, if necessary
     if ($upper_limb) {
         $altit -= $sradius;
     }
 
     # Compute the diurnal arc that the Sun traverses to reach 
-    # the specified altitude altit: 
+    # the specified altitude altit:
 
     my $cost =
       ( sind($altit) - sind($lat) * sind($sdec) ) /
@@ -639,7 +646,7 @@ sub sun_RA_dec {
     #
     # _RETURN
     #
-    # Sun's Right Ascension (RA) and Declination (dec)
+    # Sun's Right Ascension (RA), Declination (dec) and distance (r)
     # 
     #
     my ($d) = @_;
@@ -662,7 +669,7 @@ sub sun_RA_dec {
     my $RA  = atan2d( $y, $x );
     my $dec = atan2d( $z, sqrt( $x * $x + $y * $y ) );
 
-    return ( $RA, $dec );
+    return ( $RA, $dec, $r );
 
 }    # sun_RA_dec
 
@@ -1021,6 +1028,13 @@ Usually 2 iterations are enough, in rare cases 3 or 4 iterations may be needed.
 
 =back
 
+=head3 Notes on polar locations
+
+If the location is beyond either polar circle, and if the date is 
+near either solstice, there can be midnight sun or polar night.
+In this case, there is neither sunrise nor sunset, and
+the module C<carp>s that the sun never rises or never sets.
+
 =head2 next current previous contains as_list iterator
 
 See DateTime::Set.
@@ -1106,6 +1120,8 @@ DateTime Web page at http://datetime.perl.org/
 DateTime::Set documentation
 
 DateTime::SpanSet documentation
+
+Paul Shlyter's homepage at http://stjarnhimlen.se/english.html
 
 =cut
 1;

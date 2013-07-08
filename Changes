@@ -1,4 +1,10 @@
 Revision history for Perl extension DateTime::Event::Sunrise.
+
+0.0502  Mon 2013-07-08
+        - fixed computation error visible on 19, 20, 21 and 22 March (tickets 34770, 55762 and 75927)
+        - improve object class check (ticket 7605)
+        - a few words in POD about polar night and midnight sun
+
 0.0501  Wed Mar 31 2004
         - added fix for DateTime-Set after 0.1402
         - I had to remove one test (the span set test) I need to check
