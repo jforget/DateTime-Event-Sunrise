@@ -1082,7 +1082,7 @@ for suggestions.
 
 =head2 Perl Module
 
-This program is distributed under the same terms as Perl:
+This program is distributed under the same terms as Perl 5.16.3:
 GNU Public License version 1 or later and Perl Artistic License
 
 You can find the text of the licenses in the F<LICENSE> file or at
