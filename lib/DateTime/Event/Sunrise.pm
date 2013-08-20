@@ -1046,8 +1046,9 @@ is set to UTC. So don't forget to set your timezone!!
 
 =head1 AUTHOR
 
-Ron Hill
-rkhill@firstlight.net
+Ron Hill <rkhill@firstlight.net>
+
+Co-maintainer: Jean Forget <JFORGET@cpan.org>
 
 =head1 SPECIAL THANKS
 
@@ -1145,6 +1146,8 @@ DateTime Web page at http://datetime.perl.org/
 DateTime::Set documentation
 
 DateTime::SpanSet documentation
+
+Astro::Sunrise
 
 Paul Schlyter's homepage at http://stjarnhimlen.se/english.html
 
