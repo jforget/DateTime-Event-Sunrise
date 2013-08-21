@@ -7,6 +7,7 @@
 package DateTime::Event::Sunrise;
 
 use strict;
+use warnings;
 require Exporter;
 use POSIX qw(floor);
 use Math::Trig;
