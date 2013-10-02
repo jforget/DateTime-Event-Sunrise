@@ -511,7 +511,7 @@ sub _sunrise_sunset {
     }
 
     # Compute the diurnal arc that the Sun traverses to reach 
-    # the specified altitude altit:
+    # the specified height altit:
 
     my $cost =
       ( sind($altit) - sind($lat) * sind($sdec) ) /
@@ -837,9 +837,109 @@ DateTime::Event::Sunrise - Perl DateTime extension for computing the sunrise/sun
 
 =head1 SYNOPSIS
 
- use DateTime;
- use DateTime::Event::Sunrise;
- 
+  use DateTime;
+  use DateTime::Event::Sunrise;
+
+  # generating DateTime objects from a DateTime::Event::Sunrise object
+  my $sun_Kyiv = DateTime::Event::Sunrise->new(longitude => +30.85,  # 30°51'E
+					       latitude  => +50.45); # 50°27'N
+  for (12, 13, 14) {
+    my $dt_yapc_eu = DateTime->new(year      => 2013,
+				   month     =>    8,
+				   day       =>   $_,
+				   time_zone => 'Europe/Kiev');
+    say "In Kyiv (50°27'N, 30°51'E) on ", $dt_yapc_eu->ymd, " sunrise occurs at ", $sun_Kyiv->sunrise_datetime($dt_yapc_eu)->hms,
+							 " and sunset occurs at ", $sun_Kyiv->sunset_datetime ($dt_yapc_eu)->hms;
+  }
+
+  # generating DateTime objects from DateTime::Set objects
+  my $sunrise_Austin = DateTime::Event::Sunrise->sunrise(longitude => -94.73,  # 97°44'W
+							 latitude  => +30.3);  # 30°18'N
+  my $sunset_Austin  = DateTime::Event::Sunrise->sunset (longitude => -94.73,
+							 latitude  => +30.3);
+  my $dt_yapc_na_rise = DateTime->new(year      => 2013,
+				      month     =>    6,
+				      day       =>    3,
+				      time_zone => 'America/Chicago');
+  my $dt_yapc_na_set = $dt_yapc_na_rise->clone;
+  say "In Austin (30°18'N, 97°44'W), sunrises and sunsets are";
+  for (1..3) {
+    $dt_yapc_na_rise = $sunrise_Austin->next($dt_yapc_na_rise);
+    $dt_yapc_na_set  = $sunset_Austin ->next($dt_yapc_na_set);
+    say $dt_yapc_na_rise, ' ', $dt_yapc_na_set;
+  }
+
+=head1 DESCRIPTION
+
+This module will computes the time of sunrise and sunset for a given date
+and a given location. The computation uses Paul Schlyter's algorithm.
+
+Actually, the module creates a DateTime::Event::Sunrise object or a
+DateTime::Set object, which are used to generate the sunrise or the sunset
+times for a given location and for any date.
+
+=head1 METHODS
+
+=head2 new
+
+This is the DateTime::Event::Sunrise constructor. It takes keyword
+parameters, which are:
+
+=over 4
+
+=item longitude
+
+This is the longitude of the location where the sunrises and sunsets are observed.
+It is given as decimal degrees: no minutes, no seconds, but tenths and hundredths of degrees.
+Another break with the normal usage is that Eastern longitude are positive, Western longitudes
+are negative.
+
+=item latitude
+
+This is the latitude of the location where the sunrises and sunsets are observed.
+As for the longitude, it is given as decimal degrees. Northern latitudes are positive
+numbers, Southern latitudes are negative numbers.
+
+=item height
+
+This is the height of the Sun at sunrise or sunset. In astronomical context, the height
+is the angle between the Sun and the local horizon. It is expressed as degrees, usually
+with a negative number, since the Sun is I<below> the horizon.
+
+=item precise
+
+Boolean to control which algorithm is used. A false value gives a simple algorithm, but
+which can lead to inaccurate sunrise times and sunset times. A true value gives
+a more elaborate algorithm, with a loop to refine the sunrise and sunset times
+and obtain a better precision.
+
+=back
+
+=head2 sunrise, sunset
+
+Although they come from the DateTime::Event::Sunrise module, these methods
+are C<DateTime::Set> constructors. They use the same parameters as the C<new>
+constructor, but they give objects from a different class.
+
+=head2 sunrise_datetime, sunset_datetime
+
+These two methods apply to C<DateTime::Event::Sunrise> objects (that is, created
+with C<new>, not C<sunrise> or C<sunset>). They receive one parameter in addition
+to C<$self>, a C<DateTime> object. They return another C<DateTime> object,
+for the same day, but with the time of the sunrise or sunset, respectively.
+
+=head2 sunrise_sunset_span
+
+This method applies to C<DateTime::Event::Sunrise> objects. It accepts a 
+C<DateTime> object as the second parameter. It returns a C<DateTime::Span>
+object, beginning at sunrise and ending at sunset.
+
+=head2 next current previous contains as_list iterator
+
+See DateTime::Set.
+
+=head1 EXTENDED EXAMPLES
+
  my $dt = DateTime->new( year   => 2000,
                          month  => 6,
                          day    => 20,
@@ -903,62 +1003,14 @@ print "Sunrise is:" , $dt1->datetime  , "\n";
 my $dt2 = $sunrise->sunset_datetime( $dt );
 print "Sunset is:" ,  $dt2->datetime , "\n";
 
+=head1 NOTES
 
-=head1 DESCRIPTION
+=head2 Sun Height
 
-This module will return a DateTime recurrence set for sunrise or sunset.
-
-=head1 METHODS
-
-=head2 sunrise, sunset, sunrise_sunset_span, sunrise_datetime, sunset_datetime
-
- my $sunrise = DateTime::Event::Sunrise ->sunrise (
-                        longitude => '-118',
-	                latitude =>  '33',
-	                altitude =>  '-0.833',
-	                iteration => '1'
-		   );
-
- my $sunset = DateTime::Event::Sunrise ->sunset (
-                        longitude => '-118',
-	                latitude =>  '33',
-	                altitude =>  '-0.833',
-	                iteration => '1'
-		   );
- my $sunrise_span = DateTime::Event::Sunrise ->new (
-	                longitude => '-118',
-	                latitude =>  '33',
-	                altitude =>  '-0.833',
-	                iteration => '1'
-		   );
- my $both_times = $sunrise_span->sunrise_sunset_span($dt);
- print "Sunrise is:" , $both_times->start->datetime;
- print "Sunset is:" , $both_times->end->datetime;
-
- my $dt1 = $sunrise->sunrise_datetime( $dt );
- print "Sunrise is:" , $dt1->datetime  , "\n";
- my $dt2 = $sunrise->sunset_datetime( $dt );
- print "Sunset is:" ,  $dt2->datetime , "\n";
-
-
-=over 4
-
- Eastern longitude is entered as a positive number
- Western longitude is entered as a negative number
- Northern latitude is entered as a positive number
- Southern latitude is entered as a negative number
-
-=back
-
-Iteration is set to either 0 or 1.
-If set to 0 no Iteration will occur.
-If set to 1 Iteration will occur.
-Default is 0.
-
-There are a number of sun altitudes to chose from. The default is
+There are a number of sun heights to choose from. The default is
 -0.833 because this is what most countries use. Feel free to
 specify it if you need to. Here is the list of values to specify
-altitude (Altitude) with:
+the sun height with:
 
 =over 4
 
@@ -996,7 +1048,7 @@ Astronomical twilight (the sky is completely dark)
 
 =back
 
-=head3 Notes on Iteration
+=head2 Notes on Iteration
 
 The original method only gives an approximate value of the Sun's rise/set times. 
 The error rarely exceeds one or two minutes, but at high latitudes, when the Midnight Sun 
@@ -1025,26 +1077,50 @@ Usually 2 iterations are enough, in rare cases 3 or 4 iterations may be needed.
 
 =back
 
-=head3 Notes on polar locations
+=head2 Notes on polar locations
 
 If the location is beyond either polar circle, and if the date is 
 near either solstice, there can be midnight sun or polar night.
 In this case, there is neither sunrise nor sunset, and
 the module C<carp>s that the sun never rises or never sets.
 
-=head2 next current previous contains as_list iterator
+=head1 DEPENDENCIES
 
-See DateTime::Set.
+This module requires:
 
-=head2 ($sunrise, $sunset) = $sunrise_object->($dt);
+=over 4
 
-Internal method.
+=item *
 
-Returns two DateTime objects sunrise and sunset.
-Please note that the time zone for these objects
-is set to UTC. So don't forget to set your timezone!!
+DateTime
 
-=head1 AUTHOR
+=item *
+
+DateTime::Set
+
+=item *
+
+DateTime::Span
+
+=item *
+
+Params::Validate
+
+=item *
+
+Set::Infinite
+
+=item *
+
+POSIX
+
+=item *
+
+Math::Trig
+
+=back
+
+=head1 AUTHORS
 
 Ron Hill <rkhill@firstlight.net>
 
@@ -1148,6 +1224,8 @@ DateTime::Set documentation
 DateTime::SpanSet documentation
 
 Astro::Sunrise
+
+DateTime::Event::Jewish::Sunrise
 
 Paul Schlyter's homepage at http://stjarnhimlen.se/english.html
 
