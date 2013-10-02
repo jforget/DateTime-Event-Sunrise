@@ -1,6 +1,7 @@
 *~
 *gz
 blib
+coverdb
 Makefile
 Makefile.old
 MYMETA.yml
