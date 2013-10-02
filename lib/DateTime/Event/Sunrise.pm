@@ -49,11 +49,11 @@ sub new {
     # FUNCTIONAL SEQUENCE for sunrise 
     #
     # _GIVEN
-    # A sunrise class that was created by the new method
+    # A sunrise object that was created by the new method
     #
     # _THEN
     #
-    # setup subs for following/previous rise times  
+    # setup subs for following/previous sunrise times  
     #   
     #
     # _RETURN
@@ -81,10 +81,10 @@ sub sunrise {
     # 
     # _GIVEN
     # 
-    # A sunrise class that was created by the new method
+    # A sunrise object that was created by the new method
     # _THEN
     #
-    # Setup subs for following/previous set times
+    # Setup subs for following/previous sunset times
     # 
     #
     # _RETURN
@@ -108,11 +108,11 @@ sub sunset {
 
     #
     #
-    # FUNCTIONAL SEQUENCE for sunrise_sunset 
+    # FUNCTIONAL SEQUENCE for sunset_datetime
     #
     # _GIVEN
     # 
-    # A sunrise class
+    # A sunrise object
     # A DateTime object
     # 
     # _THEN
@@ -123,7 +123,7 @@ sub sunset {
     #
     # _RETURN
     #
-    #  DateTime object that contains the set time
+    #  DateTime object that contains the sunset time
     #
 sub sunset_datetime {
 
@@ -140,11 +140,11 @@ sub sunset_datetime {
 
     #
     #
-    # FUNCTIONAL SEQUENCE for sunrise_sunset 
+    # FUNCTIONAL SEQUENCE for sunrise_datetime
     #
     # _GIVEN
     # 
-    # A sunrise class
+    # A sunrise object
     # A DateTime object
     # 
     # _THEN
@@ -155,7 +155,7 @@ sub sunset_datetime {
     #
     # _RETURN
     #
-    #  DateTime object that contains the rise times
+    #  DateTime object that contains the sunrise times
     #
 sub sunrise_datetime {
 
@@ -172,11 +172,11 @@ sub sunrise_datetime {
 
     #
     #
-    # FUNCTIONAL SEQUENCE for sunrise_sunset 
+    # FUNCTIONAL SEQUENCE for sunrise_sunset_span
     #
     # _GIVEN
     # 
-    # A sunrise class
+    # A sunrise object
     # A DateTime object
     # 
     # _THEN
@@ -187,7 +187,7 @@ sub sunrise_datetime {
     #
     # _RETURN
     #
-    #  DateTime Span object that contains the rise/set times
+    #  DateTime Span object that contains the sunrise/sunset times
     #
 sub sunrise_sunset_span {
 
@@ -212,19 +212,19 @@ sub sunrise_sunset_span {
     #
     # _GIVEN
     # 
-    # A sunrise class
+    # A sunrise object
     # A DateTime object
     # 
     # _THEN
     #
     #  Validate the DateTime object is valid  
     #  Compute sunrise and return if it is greater 
-    #  that the orginal if not add one day and recompute
+    #  than the original if not add one day and recompute
     #      
     #
     # _RETURN
     #
-    #  A new DateTime object that contains the rise time
+    #  A new DateTime object that contains the sunrise time
     #
 sub _following_sunrise {
 
@@ -247,18 +247,18 @@ sub _following_sunrise {
     # FUNCTIONAL SEQUENCE for _previous_sunrise 
     #
     # _GIVEN
-    # A sunrise class
+    # A sunrise object
     # A DateTime object
     #
     # _THEN
     #
     # Validate the DateTime Object
     # Compute sunrise and return if it is less than
-    # the orginal object if not subtract one day and recompute
+    # the original object if not subtract one day and recompute
     #
     # _RETURN
     #
-    # A new DateTime Object that contains the rise time 
+    # A new DateTime Object that contains the sunrise time 
     #
 sub _previous_sunrise {
 
@@ -281,18 +281,18 @@ sub _previous_sunrise {
     # FUNCTIONAL SEQUENCE for _following_sunset  
     #
     # _GIVEN
-    # A sunrise class
+    # A sunrise object
     # A DateTime object
     #
     # _THEN
     #
     #  Validate the DateTime object is valid  
     #  Compute sunset and return if it is greater 
-    #  that the orginal if not add one day and recompute
+    #  than the original if not add one day and recompute
     #
     # _RETURN
     #
-    #  A DateTime object with set time
+    #  A DateTime object with sunset time
     #
 sub _following_sunset {
 
@@ -315,18 +315,18 @@ sub _following_sunset {
     # FUNCTIONAL SEQUENCE for _previous_sunset 
     #
     # _GIVEN
-    #  A sunrise class
+    #  A sunrise object
     #  A DateTime object
     #
     # _THEN
     #
     # Validate the DateTime Object
     # Compute sunset and return if it is less than
-    # the orginal object if not subtract one day and recompute
+    # the original object if not subtract one day and recompute
     #  
     # _RETURN
     #
-    # A DateTime object with set time 
+    # A DateTime object with sunset time 
     #
 sub _previous_sunset {
 
@@ -349,7 +349,7 @@ sub _previous_sunset {
     # FUNCTIONAL SEQUENCE for _sunrise 
     #
     # _GIVEN
-    #  A sunrise class DateTime object and a DateTime object
+    #  A sunrise object and a DateTime object
     #
     # _THEN
     #
@@ -365,7 +365,7 @@ sub _previous_sunset {
     #
     # _RETURN
     # 
-    # two DateTime objects the date and time for sunrise and sunset
+    # two DateTime objects with the date and time for sunrise and sunset
     #
 sub _sunrise {
 
@@ -386,7 +386,7 @@ sub _sunrise {
           _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
           15.04107 );
 
-# Now we have the initial rise/set times next recompute d using the exact moment
+        # Now we have the initial rise/set times next recompute d using the exact moment
         # recompute sunrise
 
         my $tmp_rise_2 = 9;
@@ -476,18 +476,18 @@ sub _sunrise {
 
     #
     #
-    # FUNCTIONAL SEQUENCE for sunrise_sunset 
+    # FUNCTIONAL SEQUENCE for _sunrise_sunset 
     #
     # _GIVEN
     # 
-    #  days since jan 1 2000, longitude, latitude, $altit and $h
+    #  days since jan 1 2000, longitude, latitude, reference sun height and $h
     # _THEN
     #
     #  Compute the sunrise/sunset times for that day   
     #      
     # _RETURN
     #
-    #  rise and set times as hours (GMT Time) 
+    #  sunrise and sunset times as hours (GMT Time) 
     #
 sub _sunrise_sunset {
 
@@ -550,7 +550,7 @@ sub _sunrise_sunset {
     # computes GMST0, the Greenwich Mean Sidereal Time  
     # at 0h UT (i.e. the sidereal time at the Greenwhich meridian at  
     # 0h UT).  GMST is then the sidereal time at Greenwich at any     
-    # time of the day..
+    # time of the day.
     # 
     #
     # _RETURN
@@ -577,8 +577,8 @@ sub GMST0 {
     #
     # _THEN
     #
-    # Computes the Sun's ecliptic longitude and distance */
-    # at an instant given in d, number of days since     */
+    # Computes the Sun's ecliptic longitude and distance
+    # at an instant given in d, number of days since
     # 2000 Jan 0.0. 
     # 
     #
@@ -605,10 +605,10 @@ sub sunpos {
     my $Eccentricity_of_Earth_orbit  = 0.016709 - 1.151E-9 * $d;
 
     # Compute true longitude and radius vector 
-    my $Eccentric_anomaly =
-      $Mean_anomaly_of_sun + $Eccentricity_of_Earth_orbit * $RADEG *
-      sind($Mean_anomaly_of_sun) *
-      ( 1.0 + $Eccentricity_of_Earth_orbit * cosd($Mean_anomaly_of_sun) );
+    my $Eccentric_anomaly = $Mean_anomaly_of_sun
+                            + $Eccentricity_of_Earth_orbit * $RADEG
+                              * sind($Mean_anomaly_of_sun)
+                              * ( 1.0 + $Eccentricity_of_Earth_orbit * cosd($Mean_anomaly_of_sun) );
 
     my $x = cosd($Eccentric_anomaly) - $Eccentricity_of_Earth_orbit;
 
@@ -684,7 +684,6 @@ sub sun_RA_dec {
     # process the DateTime object for number of days
     # since Jan,1 2000  (counted in days)
     # Day 0.0 is at Jan 1 2000 0.0 UT
-    # Note that ALL divisions here should be INTEGER divisions
     #
     # _RETURN
     #
@@ -737,7 +736,7 @@ sub atan2d {
     # FUNCTIONAL SEQUENCE for revolution
     #
     # _GIVEN
-    # any angle
+    # any angle in degrees
     #
     # _THEN
     #
@@ -761,7 +760,7 @@ sub revolution {
     #
     # _GIVEN
     # 
-    # any angle
+    # any angle in degrees
     #
     # _THEN
     #
@@ -813,7 +812,7 @@ sub equal {
     #
     # _THEN
     #
-    # split out the hours and minites
+    # split out the hours and minutes
     # Oct 20 2003
     # will convert hours to seconds and return this
     # let DateTime handle the conversion
