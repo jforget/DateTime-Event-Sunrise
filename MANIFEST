@@ -7,4 +7,5 @@ lib/DateTime/Event/Sunrise.pm
 t/00load.t
 t/01basic.t
 t/02March21.t
+t/03nextprev.t
 META.yml                                 Module meta-data (added by MakeMaker)
