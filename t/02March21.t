@@ -43,10 +43,10 @@ TEST
 plan (tests => scalar @tests);
 
 foreach (@tests) {
-  my ($lon, $lat, $iter, $dd, $res) = split ' ', $_;
-  my $sunset = DateTime::Event::Sunrise->sunset(longitude => $lon,
+  my ($lon, $lat, $precise, $dd, $res) = split ' ', $_;
+  my $sunset = DateTime::Event::Sunrise->sunset(longitude  => $lon,
                                                  latitude  => $lat,
-                                                 iteration => $iter,
+                                                 precise   => $precise,
                                                 );
   my  $day =  DateTime->new(year => 2008, month => 3, day => $dd, time_zone => 'UTC');
 

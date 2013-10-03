@@ -28,16 +28,44 @@ my $upper_limb = '1';
 sub new {
     my $class = shift;
 
-    my %args = validate(
+    if (@_ % 2 != 0) {
+      croak "Odd number of parameters";
+    }
+    my %args = @_;
+    if (exists $args{height} && exists $args{altitude}) {
+      croak "Parameter 'altitude' is deprecated, use only 'height'";
+    }
+    if (exists $args{iteration} && exists $args{precise}) {
+      croak "Parameter 'iteration' is deprecated, use only 'precise'";
+    }
+
+    # Making old and new parameters synonymous
+    unless (exists $args{height}) {
+      $args{height} = $args{altitude};
+    }
+    unless (exists $args{precise}) {
+      $args{precise} = $args{iteration};
+    }
+    # TODO : get rid of the old parameters after this point
+    $args{altitude}  = $args{height};
+    $args{iteration} = $args{precise};
+
+    %args = validate(
       @_, {
           longitude => { type => SCALAR, optional => 1 },
           latitude  => { type => SCALAR, optional => 1 },
+          height    => {
+              type    => SCALAR,
+              default => '-0.833',
+              regex   => qr/^(0|-0.25|-0.583|-0.833|-6|-12|-15|-18)$/
+          },
           altitude  => {
               type    => SCALAR,
               default => '-0.833',
               regex   => qr/^(0|-0.25|-0.583|-0.833|-6|-12|-15|-18)$/
           },
           iteration => { type => SCALAR, default => '0' },
+          precise   => { type => SCALAR, default => '0' },
       }
     );
 
@@ -353,10 +381,10 @@ sub _previous_sunset {
     #
     # _THEN
     #
-    # Check if iteration is set to one if so
+    # Check if precise is set to one if so
     # initially compute sunrise/sunset (using division
     # by 15.04107 instead of 15.0) then recompute rise/set time
-    # using exact moment last computed. IF iteration is set
+    # using exact moment last computed. IF precise is set
     # to zero devide by 15.0 (only once)
     # 
     # Bug in this sub, I was blindly setting the hour and min without
@@ -373,10 +401,10 @@ sub _sunrise {
     my $dt        = shift;
     my $cloned_dt = $dt->clone;
     my $altit     = $self->{altitude};
-    my $iteration = defined( $self->{iteration} ) ? $self->{iteration} : 0;
+    my $precise   = defined( $self->{precise} ) ? $self->{precise} : 0;
     $cloned_dt->set_time_zone('floating');
 
-    if ($iteration) {
+    if ($precise) {
 
         # This is the initial start
 
@@ -842,25 +870,25 @@ DateTime::Event::Sunrise - Perl DateTime extension for computing the sunrise/sun
 
   # generating DateTime objects from a DateTime::Event::Sunrise object
   my $sun_Kyiv = DateTime::Event::Sunrise->new(longitude => +30.85,  # 30°51'E
-					       latitude  => +50.45); # 50°27'N
+                                               latitude  => +50.45); # 50°27'N
   for (12, 13, 14) {
     my $dt_yapc_eu = DateTime->new(year      => 2013,
-				   month     =>    8,
-				   day       =>   $_,
-				   time_zone => 'Europe/Kiev');
+                                   month     =>    8,
+                                   day       =>   $_,
+                                   time_zone => 'Europe/Kiev');
     say "In Kyiv (50°27'N, 30°51'E) on ", $dt_yapc_eu->ymd, " sunrise occurs at ", $sun_Kyiv->sunrise_datetime($dt_yapc_eu)->hms,
-							 " and sunset occurs at ", $sun_Kyiv->sunset_datetime ($dt_yapc_eu)->hms;
+                                                         " and sunset occurs at ", $sun_Kyiv->sunset_datetime ($dt_yapc_eu)->hms;
   }
 
   # generating DateTime objects from DateTime::Set objects
   my $sunrise_Austin = DateTime::Event::Sunrise->sunrise(longitude => -94.73,  # 97°44'W
-							 latitude  => +30.3);  # 30°18'N
+                                                         latitude  => +30.3);  # 30°18'N
   my $sunset_Austin  = DateTime::Event::Sunrise->sunset (longitude => -94.73,
-							 latitude  => +30.3);
+                                                         latitude  => +30.3);
   my $dt_yapc_na_rise = DateTime->new(year      => 2013,
-				      month     =>    6,
-				      day       =>    3,
-				      time_zone => 'America/Chicago');
+                                      month     =>    6,
+                                      day       =>    3,
+                                      time_zone => 'America/Chicago');
   my $dt_yapc_na_set = $dt_yapc_na_rise->clone;
   say "In Austin (30°18'N, 97°44'W), sunrises and sunsets are";
   for (1..3) {
@@ -946,18 +974,18 @@ See DateTime::Set.
                   );
 
  my $sunrise = DateTime::Event::Sunrise ->sunrise (
-	                longitude =>'-118',
-	                latitude =>'33',
-	                altitude => '-0.833',
-	                iteration => '1'
-		  );
+                        longitude =>'-118',
+                        latitude =>'33',
+                        altitude => '-0.833',
+                        precise   => '1'
+                  );
 
  my $sunset = DateTime::Event::Sunrise ->sunset (
-	                longitude =>'-118',
-	                latitude =>'33',
-	                altitude => '-0.833',
-	                iteration => '1'
-		  );
+                        longitude =>'-118',
+                        latitude =>'33',
+                        altitude => '-0.833',
+                        precise   => '1'
+                  );
 
  my $tmp_rise = $sunrise->next( $dt ); 
  
@@ -981,16 +1009,16 @@ See DateTime::Set.
 
 
 my $dt = DateTime->new( year   => 2000,
-		 month  => 6,
-		 day    => 20,
+                 month  => 6,
+                 day    => 20,
                  time_zone => 'America/Los_Angeles',
                   );
 
 my $sunrise = DateTime::Event::Sunrise ->new(
                      longitude =>'-118' ,
-		     latitude => '33',
-		     altitude => '-0.833',
-	             iteration => '1'
+                     latitude  => '33',
+                     altitude  => '-0.833',
+                     precise   => '1'
                      
 );
 
@@ -1048,12 +1076,12 @@ Astronomical twilight (the sky is completely dark)
 
 =back
 
-=head2 Notes on Iteration
+=head2 Notes on the Precise Algorithm
 
 The original method only gives an approximate value of the Sun's rise/set times. 
 The error rarely exceeds one or two minutes, but at high latitudes, when the Midnight Sun 
 soon will start or just has ended, the errors may be much larger. If you want higher accuracy, 
-you must then use the iteration feature. This feature is new as of version 0.7. Here is
+you must then select the precise variant of the algorithm. This feature is new as of version 0.7. Here is
 what I have tried to accomplish with this.
 
 

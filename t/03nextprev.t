@@ -42,11 +42,11 @@ foreach (@tests) {
   my ($epoch, $lat, $lon) = split ' ', $_;
   my $sunrise = DateTime::Event::Sunrise->sunrise(longitude => $lon,
                                                   latitude  => $lat,
-                                                  iteration => 1,
+                                                  precise   => 1,
                                                   );
   my $sunset  = DateTime::Event::Sunrise->sunset (longitude => $lon,
                                                   latitude  => $lat,
-                                                  iteration => 1,
+                                                  precise   => 1,
                                                   );
   my $dt = DateTime->from_epoch(epoch => $epoch);
 
