@@ -34,29 +34,28 @@ use DateTime::Span;
 use DateTime::SpanSet;
 use DateTime::Event::Sunrise;
 
-BEGIN { plan tests => 254 }
+my @data = data();
+plan tests => 14 + 2 * @data;
 my $dt = DateTime->new( year   => 2000,
-		 month  => 6,
-		 day    => 20,
-                 time_zone => 'America/Los_Angeles',
-                  );
+                        month  => 6,
+                        day    => 20,
+                        time_zone => 'America/Los_Angeles',
+                         );
 my $dt2 = DateTime->new( year   => 2000,
-		 month  => 6,
-		 day    => 22,
-                 time_zone => 'America/Los_Angeles',
-                  );
+                         month  => 6,
+                         day    => 22,
+                         time_zone => 'America/Los_Angeles',
+                          );
 
 my $sunrise = DateTime::Event::Sunrise ->sunrise(
                      longitude =>'-118' ,
-		     latitude => '33',
+                     latitude => '33',
                      
 );
 my $sunset = DateTime::Event::Sunrise ->sunset(
                      longitude =>'-118' ,
-		     latitude => '33',
+                     latitude => '33',
                      );
-
-
 
 my $tmp_rise = $sunrise->current($dt);
 my $tmp_set  = $sunset->current($dt);
@@ -104,7 +103,7 @@ is ( $sunset->contains( $dt ),
 
 my $sun = DateTime::Event::Sunrise ->new(
                      longitude =>'-118' ,
-		     latitude => '33',
+                     latitude => '33',
 );
 
 my $tmp_set1 = $sun->sunrise_sunset_span($dt);
@@ -120,35 +119,27 @@ my $dt3 = DateTime->new(
   day   => 21,
 );
 
-while (<DATA>) {
+for  (@data) {
 /(\w+),\s+(\w+)\s+(\d+)\s+(\d+)\s+(\w)\s+(\d+)\s+(\d+)\s+(\w)\s+sunrise:\s+(\d+:\d+)\s+sunset:\s+(\d+:\d+)/;
     if ( $5 eq 'N' ) {
         $lat = sprintf( "%.3f", ( $3 + ( $4 / 60 ) ) );
-
     }
     elsif ( $5 eq 'S' ) {
         $lat = sprintf( "%.3f", -( $3 + ( $4 / 60 ) ) );
-
     }
 
     if ( $8 eq 'E' ) {
         $long = sprintf( "%.3f", $6 + ( $7 / 60 ) );
-
     }
     elsif ( $8 eq 'W' ) {
         $long = sprintf( "%.3f", -( $6 + ( $7 / 60 ) ) );
-
     }
 
     if ( $long < 0 ) {
-        $offset =
-          DateTime::TimeZone::offset_as_string( ceil( ( $long / 15 ) ) * 60 *
-          60 );
+        $offset = DateTime::TimeZone::offset_as_string( ceil( $long / 15 ) * 60 * 60 );
     }
     elsif ( $long > 0 ) {
-        $offset =
-          DateTime::TimeZone::offset_as_string( floor( ( $long / 15 ) ) * 60 *
-          60 );
+        $offset = DateTime::TimeZone::offset_as_string( floor( $long / 15 ) * 60 * 60 );
     }
 
     my $sunrise = DateTime::Event::Sunrise->sunrise(
@@ -171,7 +162,7 @@ while (<DATA>) {
     my $sun_set  = $tmp_set->strftime("%H:%M");
 
     is( $sun_rise, $9,  "Sunrise for $1, $2" );
-    is( $sun_set,  $10, "Sunset for $1, $2" );
+    is( $sun_set,  $10, "Sunset  for $1, $2" );
 
 }
 
@@ -188,10 +179,10 @@ sub round_to_min {
         my $new_date = $tmp_date + $d;
         return ( $new_date->truncate( to => 'minute' ) );
     }
-
 }
 
-__DATA__
+sub data {
+  return split "\n", <<'DATA';
 Aberdeen, Scotland 57 9 N 2 9 W sunrise: 03:09 sunset: 21:11
 Adelaide, Australia 34 55 S 138 36 E sunrise: 06:51 sunset: 16:42
 Algiers, Algeria 36 50 N 3 0 E sunrise: 04:27 sunset: 19:11
@@ -267,48 +258,46 @@ Mexico_City, Mexico 19 26 N 99 7 W sunrise: 05:57 sunset: 19:18
 Milan, Italy 45 27 N 9 10 E sunrise: 03:33 sunset: 19:17
 Montevideo, Uruguay 34 53 S 56 10 W sunrise: 07:50 sunset: 17:42
 Moscow, Russia 55 45 N 37 36 E sunrise: 02:42 sunset: 20:20
-Munich, Germany 48 8 N 11 35 E sunrise: 03:11 sunset: 19:19
-Nagasaki, Japan 32 48 N 129 57 E sunrise: 04:11 sunset: 18:32
-Nagoya, Japan 35 7 N 136 56 E sunrise: 04:36 sunset: 19:11
-Nairobi, Kenya 1 25 S 36 55 E sunrise: 05:31 sunset: 17:36
-Nanjing_Nanking, China 32 3 N 118 53 E sunrise: 03:57 sunset: 18:14
-Naples, Italy 40 50 N 14 15 E sunrise: 03:29 sunset: 18:39
-Newcastle-on-Tyne, England 54 58 N 1 37 W 03:27 sunset: 20:49
-Odessa, Ukraine 46 27 N 30 48 E sunrise: 04:02 sunset: 19:54
-Osaka, Japan 34 32 N 135 30 E sunrise: 04:44 sunset: 19:15
-Oslo, Norway 59 57 N 10 42 E sunrise: 01:50 sunset: 20:47
-Panama_City, Panama 8 58 N 79 32 W sunrise: 05:59 sunset: 18:40
-Paramaribo, Suriname 5 45 N 55 15 W  sunrise: 06:27 sunset: 18:57
-Paris, France 48 48 N 2 20 E sunrise: 03:45 sunset: 19:59
-Perth, Australia 31 57 S 115 52 E sunrise: 06:15 sunset: 16:21
-Plymouth, England 50 25 N 4 5 W sunrise: 04:02 sunset: 20:33
-Port_Moresby, Papua_New_Guinea 9 25 S 147 8 E sunrise: 05:24 sunset: 17:01
-Prague, Czech_Republic 50 5 N 14 26 E sunrise: 02:50 sunset: 19:17
-Rangoon, Myanmar 16 50 N 96 0 E sunrise: 05:02 sunset: 18:12
-Reykjavik, Iceland 64 4 N 21 58 W sunrise: 01:50 sunset: 23:08
-Rio_de_Janeiro, Brazil 22 57 S 43 12 W sunrise: 07:31 sunset: 18:17
-Rome, Italy 41 54 N 12 27 E sunrise: 03:33 sunset: 18:50
-Salvador, Brazil 12 56 S 38 27 W sunrise: 06:53 sunset: 18:17
-Santiago, Chile 33 28 S 70 45 W sunrise: 07:45 sunset: 17:44
-St_Petersburg, Russia 59 56 N 30 18 E sunrise: 02:31 sunset: 21:29
-Sao_Paulo, Brazil 23 31 S 46 31 W sunrise: 06:46 sunset: 17:29
-Shanghai, China 31 10 N 121 28 E sunrise: 04:49 sunset: 19:02
-Singapore, Singapore 1 14 N 103 55 E sunrise: 04:59 sunset: 17:12
-Sofia, Bulgaria 42 40 N 23 20 E sunrise: 03:47 sunset: 19:09
-Stockholm, Sweden 59 17 N 18 3 E sunrise: 02:28 sunset: 21:10
-Sydney, Australia 34 0 S 151 0 E sunrise: 06:59 sunset: 16:55
-Tananarive, Madagascar 18 50 S 47 33 E sunrise: 06:20 sunset: 17:22
-Teheran, Iran 35 45 N 51 45 E sunrise: 04:15 sunset: 18:53
-Tokyo, Japan 35 40 N 139 45 E sunrise: 04:24 sunset: 19:01
-Tripoli, Libya 32 57 N 13 12 E sunrise: 03:57 sunset: 18:20
-Venice, Italy 45 26 N 12 20 E sunrise: 03:20 sunset: 19:04
-Veracruz, Mexico 19 10 N 96 10 W sunrise: 05:46 sunset: 19:06
-Vienna, Austria 48 14 N 16 20 E sunrise: 03:52 sunset: 20:00
-Vladivostok, Russia 43 10 N 132 0 E sunrise: 03:30 sunset: 18:56
-Warsaw, Poland 52 14 N 21 0 E sunrise: 03:12 sunset: 20:03
-Wellington, New_Zealand 41 17 S 174 47 E sunrise: 06:45 sunset: 15:59
-Zurich, Switzerland 47 21 N 8 31 E sunrise: 03:27 sunset: 19:27
-
-
-1;
-
+Munich,            Germany          48  8 N  11 35 E sunrise: 03:11 sunset: 19:19
+Nagasaki,          Japan            32 48 N 129 57 E sunrise: 04:11 sunset: 18:32
+Nagoya,            Japan            35  7 N 136 56 E sunrise: 04:36 sunset: 19:11
+Nairobi,           Kenya             1 25 S  36 55 E sunrise: 05:31 sunset: 17:36
+Nanjing_Nanking,   China            32  3 N 118 53 E sunrise: 03:57 sunset: 18:14
+Naples,            Italy            40 50 N  14 15 E sunrise: 03:29 sunset: 18:39
+Newcastle_on_Tyne, England          54 58 N   1 37 W sunrise: 03:24 sunset: 20:51
+Odessa,            Ukraine          46 27 N  30 48 E sunrise: 04:02 sunset: 19:54
+Osaka,             Japan            34 32 N 135 30 E sunrise: 04:44 sunset: 19:15
+Oslo,              Norway           59 57 N  10 42 E sunrise: 01:50 sunset: 20:47
+Panama_City,       Panama            8 58 N  79 32 W sunrise: 05:59 sunset: 18:40
+Paramaribo,        Suriname          5 45 N  55 15 W sunrise: 06:27 sunset: 18:57
+Paris,             France           48 48 N   2 20 E sunrise: 03:45 sunset: 19:59
+Perth,             Australia        31 57 S 115 52 E sunrise: 06:15 sunset: 16:21
+Plymouth,          England          50 25 N   4  5 W sunrise: 04:02 sunset: 20:33
+Port_Moresby,      Papua_New_Guinea  9 25 S 147  8 E sunrise: 05:24 sunset: 17:01
+Prague,            Czech_Republic   50  5 N  14 26 E sunrise: 02:50 sunset: 19:17
+Rangoon,           Myanmar          16 50 N  96  0 E sunrise: 05:02 sunset: 18:12
+Reykjavik,         Iceland          64  4 N  21 58 W sunrise: 01:50 sunset: 23:08
+Rio_de_Janeiro,    Brazil           22 57 S  43 12 W sunrise: 07:31 sunset: 18:17
+Rome,              Italy            41 54 N  12 27 E sunrise: 03:33 sunset: 18:50
+Salvador,          Brazil           12 56 S  38 27 W sunrise: 06:53 sunset: 18:17
+Santiago,          Chile            33 28 S  70 45 W sunrise: 07:45 sunset: 17:44
+St_Petersburg,     Russia           59 56 N  30 18 E sunrise: 02:31 sunset: 21:29
+Sao_Paulo,         Brazil           23 31 S  46 31 W sunrise: 06:46 sunset: 17:29
+Shanghai,          China            31 10 N 121 28 E sunrise: 04:49 sunset: 19:02
+Singapore,         Singapore         1 14 N 103 55 E sunrise: 04:59 sunset: 17:12
+Sofia,             Bulgaria         42 40 N  23 20 E sunrise: 03:47 sunset: 19:09
+Stockholm,         Sweden           59 17 N  18  3 E sunrise: 02:28 sunset: 21:10
+Sydney,            Australia        34  0 S 151  0 E sunrise: 06:59 sunset: 16:55
+Tananarive,        Madagascar       18 50 S  47 33 E sunrise: 06:20 sunset: 17:22
+Teheran,           Iran             35 45 N  51 45 E sunrise: 04:15 sunset: 18:53
+Tokyo,             Japan            35 40 N 139 45 E sunrise: 04:24 sunset: 19:01
+Tripoli,           Libya            32 57 N  13 12 E sunrise: 03:57 sunset: 18:20
+Venice,            Italy            45 26 N  12 20 E sunrise: 03:20 sunset: 19:04
+Veracruz,          Mexico           19 10 N  96 10 W sunrise: 05:46 sunset: 19:06
+Vienna,            Austria          48 14 N  16 20 E sunrise: 03:52 sunset: 20:00
+Vladivostok,       Russia           43 10 N 132  0 E sunrise: 03:30 sunset: 18:56
+Warsaw,            Poland           52 14 N  21  0 E sunrise: 03:12 sunset: 20:03
+Wellington,        New_Zealand      41 17 S 174 47 E sunrise: 06:45 sunset: 15:59
+Zurich,            Switzerland      47 21 N   8 31 E sunrise: 03:27 sunset: 19:27
+DATA
+}
