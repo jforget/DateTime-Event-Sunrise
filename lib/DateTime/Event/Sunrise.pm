@@ -267,6 +267,9 @@ sub _following_sunrise {
     );
     my $new_dt = $dt + $d;
     ( $tmp_rise, undef ) = _sunrise( $self, $new_dt );
+    return $tmp_rise if $tmp_rise > $dt;
+    $new_dt = $new_dt + $d;
+    ( $tmp_rise, undef ) = _sunrise( $self, $new_dt );
     return $tmp_rise;
 }
 
@@ -300,6 +303,9 @@ sub _previous_sunrise {
       days => 1,
     );
     my $new_dt = $dt - $d;
+    ( $tmp_rise, undef ) = _sunrise( $self, $new_dt );
+    return $tmp_rise if $tmp_rise < $dt;
+    $new_dt = $new_dt - $d;
     ( $tmp_rise, undef ) = _sunrise( $self, $new_dt );
     return $tmp_rise;
 }
@@ -335,6 +341,9 @@ sub _following_sunset {
     );
     my $new_dt = $dt + $d;
     ( undef, $tmp_set ) = _sunrise( $self, $new_dt );
+    return $tmp_set if $tmp_set > $dt;
+    $new_dt = $new_dt + $d;
+    ( undef, $tmp_set ) = _sunrise( $self, $new_dt );
     return $tmp_set;
 }
 
@@ -368,6 +377,9 @@ sub _previous_sunset {
       days => 1,
     );
     my $new_dt = $dt - $d;
+    ( undef, $tmp_set ) = _sunrise( $self, $new_dt );
+    return $tmp_set if $tmp_set < $dt;
+    $new_dt = $new_dt - $d;
     ( undef, $tmp_set ) = _sunrise( $self, $new_dt );
     return $tmp_set;
 }
