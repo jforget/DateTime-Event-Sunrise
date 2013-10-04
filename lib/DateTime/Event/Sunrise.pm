@@ -52,8 +52,8 @@ sub new {
 
     %args = validate(
       @_, {
-          longitude => { type => SCALAR, optional => 1 },
-          latitude  => { type => SCALAR, optional => 1 },
+          longitude => { type => SCALAR, optional => 1, default => 0 },
+          latitude  => { type => SCALAR, optional => 1, default => 0 },
           height    => {
               type    => SCALAR,
               default => '-0.833',
@@ -487,11 +487,9 @@ sub _sunrise {
         return ( $rise_time, $set_time );
     }
     else {
-        my $d =
-          days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
-        my ( $h1, $h2 ) =
-          _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
-          15.0 );
+        my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
+        my ( $h1, $h2 ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
+                           15.0 );
         my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
         my $rise_dur = DateTime::Duration->new( seconds => $seconds_rise );
         my $set_dur  = DateTime::Duration->new( seconds => $seconds_set );
@@ -934,11 +932,15 @@ It is given as decimal degrees: no minutes, no seconds, but tenths and hundredth
 Another break with the normal usage is that Eastern longitude are positive, Western longitudes
 are negative.
 
+Default value is 0, that is Greenwich or any location on the eponymous meridian.
+
 =item latitude
 
 This is the latitude of the location where the sunrises and sunsets are observed.
 As for the longitude, it is given as decimal degrees. Northern latitudes are positive
 numbers, Southern latitudes are negative numbers.
+
+Default value is 0, that is any location on the equator.
 
 =item height
 
@@ -946,12 +948,21 @@ This is the height of the Sun at sunrise or sunset. In astronomical context, the
 is the angle between the Sun and the local horizon. It is expressed as degrees, usually
 with a negative number, since the Sun is I<below> the horizon.
 
+Default value is -0.833, that is when the sun's upper limb touches the horizon, while
+taking in account the light refraction.
+
+This parameter replaces the C<altitude> deprecated parameter.
+
 =item precise
 
 Boolean to control which algorithm is used. A false value gives a simple algorithm, but
 which can lead to inaccurate sunrise times and sunset times. A true value gives
 a more elaborate algorithm, with a loop to refine the sunrise and sunset times
 and obtain a better precision.
+
+Default value is 0, to choose the simple algorithm.
+
+This parameter replaces the C<iteration> deprecated parameter.
 
 =back
 
@@ -980,71 +991,79 @@ See DateTime::Set.
 
 =head1 EXTENDED EXAMPLES
 
- my $dt = DateTime->new( year   => 2000,
+  my $dt = DateTime->new( year   => 2000,
                          month  => 6,
                          day    => 20,
                   );
 
- my $sunrise = DateTime::Event::Sunrise ->sunrise (
+  my $sunrise = DateTime::Event::Sunrise ->sunrise (
                         longitude =>'-118',
                         latitude =>'33',
                         altitude => '-0.833',
                         precise   => '1'
                   );
 
- my $sunset = DateTime::Event::Sunrise ->sunset (
+  my $sunset = DateTime::Event::Sunrise ->sunset (
                         longitude =>'-118',
                         latitude =>'33',
                         altitude => '-0.833',
                         precise   => '1'
                   );
 
- my $tmp_rise = $sunrise->next( $dt ); 
+  my $tmp_rise = $sunrise->next( $dt ); 
  
- my $dt2 = DateTime->new( year   => 2000,
+  my $dt2 = DateTime->new( year   => 2000,
                          month  => 12,
                          day    => 31,
                    );
  
- # iterator
- my $dt_span = DateTime::Span->new( start =>$dt1, end=>$dt2 );
- my $set = $sunrise->intersection($dt_span);
- my $iter = $set->iterator;
- while ( my $dt = $iter->next ) {
-     print ' ',$dt->datetime;
- }
+  # iterator
+  my $dt_span = DateTime::Span->new( start =>$dt, end=>$dt2 );
+  my $set = $sunrise->intersection($dt_span);
+  my $iter = $set->iterator;
+  while ( my $dt = $iter->next ) {
+    print ' ',$dt->datetime;
+  }
 
- # is it day or night?
- my $day_set = DateTime::SpanSet->from_sets( 
-     start_set => $sunrise, end_set => $sunset );
- print $day_set->contains( $dt ) ? 'day' : 'night';
+  # is it day or night?
+  my $day_set = DateTime::SpanSet->from_sets( 
+    start_set => $sunrise, end_set => $sunset );
+  print $day_set->contains( $dt ) ? 'day' : 'night';
 
+  my $dt = DateTime->new( year   => 2000,
+		   month  => 6,
+		   day    => 20,
+		   time_zone => 'America/Los_Angeles',
+		    );
 
-my $dt = DateTime->new( year   => 2000,
-                 month  => 6,
-                 day    => 20,
-                 time_zone => 'America/Los_Angeles',
-                  );
+  my $sunrise = DateTime::Event::Sunrise ->new(
+		       longitude =>'-118' ,
+		       latitude  => '33',
+		       altitude  => '-0.833',
+		       precise   => '1'
 
-my $sunrise = DateTime::Event::Sunrise ->new(
-                     longitude =>'-118' ,
-                     latitude  => '33',
-                     altitude  => '-0.833',
-                     precise   => '1'
-                     
-);
+  );
 
-my $tmp = $sunrise->sunrise_sunset_span($dt);
-print "Sunrise is:" , $tmp->start->datetime , "\n";
-print "Sunset is:" , $tmp->end->datetime;
-
-my $dt1 = $sunrise->sunrise_datetime( $dt );
-print "Sunrise is:" , $dt1->datetime  , "\n";
-my $dt2 = $sunrise->sunset_datetime( $dt );
-print "Sunset is:" ,  $dt2->datetime , "\n";
+  my $tmp = $sunrise->sunrise_sunset_span($dt);
+  print "Sunrise is:" , $tmp->start->datetime , "\n";
+  print "Sunset is:" , $tmp->end->datetime;
 
 =head1 NOTES
 
+=head2 Longitude Signs
+
+Remember, contrary to the usual convention,
+
+EASTERN longitudes are POSITIVE,
+
+WESTERN longitudes are NEGATIVE.
+
+On the other hand, the latitude signs follow the usual convention:
+
+Northen latitudes are positive,
+
+Southern latitudes are negative.
+ 
 =head2 Sun Height
 
 There are a number of sun heights to choose from. The default is
