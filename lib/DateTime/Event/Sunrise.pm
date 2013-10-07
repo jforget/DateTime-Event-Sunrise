@@ -40,35 +40,44 @@ sub new {
       croak "Parameter 'iteration' is deprecated, use only 'precise'";
     }
 
-    # Making old and new parameters synonymous
-    unless (exists $args{height}) {
-      $args{height} = $args{altitude};
+    unless (exists $args{altitude}) {
+      %args = validate(
+        @_, {
+            longitude => { type => SCALAR, optional => 1, default => 0 },
+            latitude  => { type => SCALAR, optional => 1, default => 0 },
+            height    => {
+                type    => SCALAR,
+                default => '-0.833',
+                regex   => qr/^(-?\d+(?:\.\d+)?)$/
+            },
+            iteration => { type => SCALAR, default => '0' },
+            precise   => { type => SCALAR, default => '0' },
+        }
+      );
+
+      $args{altitude}  = $args{height};
     }
+    else {
+      %args = validate(
+        @_, {
+            longitude => { type => SCALAR, optional => 1, default => 0 },
+            latitude  => { type => SCALAR, optional => 1, default => 0 },
+            altitude  => {
+                type    => SCALAR,
+                regex   => qr/^(0|-0.25|-0.583|-0.833|-6|-12|-15|-18)$/
+            },
+            iteration => { type => SCALAR, default => '0' },
+            precise   => { type => SCALAR, default => '0' },
+        }
+      );
+      $args{height}  = $args{altitude};
+    }
+    # Making old and new parameters synonymous
     unless (exists $args{precise}) {
       $args{precise} = $args{iteration};
     }
     # TODO : get rid of the old parameters after this point
-    $args{altitude}  = $args{height};
     $args{iteration} = $args{precise};
-
-    %args = validate(
-      @_, {
-          longitude => { type => SCALAR, optional => 1, default => 0 },
-          latitude  => { type => SCALAR, optional => 1, default => 0 },
-          height    => {
-              type    => SCALAR,
-              default => '-0.833',
-              regex   => qr/^(0|-0.25|-0.583|-0.833|-6|-12|-15|-18)$/
-          },
-          altitude  => {
-              type    => SCALAR,
-              default => '-0.833',
-              regex   => qr/^(0|-0.25|-0.583|-0.833|-6|-12|-15|-18)$/
-          },
-          iteration => { type => SCALAR, default => '0' },
-          precise   => { type => SCALAR, default => '0' },
-      }
-    );
 
     return bless \%args, $class;
 }
