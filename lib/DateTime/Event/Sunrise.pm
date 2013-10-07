@@ -1,3 +1,4 @@
+# -*- encoding: utf-8; indent-tabs-mode: nil -*-
 #
 #     Perl DateTime extension for computing the sunrise/sunset on a given day
 #     Copyright (C) 1999-2004, 2013 Ron Hill and Jean Forget
@@ -869,6 +870,8 @@ sub convert_hour {
 
 1962; # Hint: by RZ, better known as BD
 
+=encoding utf8
+
 =head1 NAME
 
 DateTime::Event::Sunrise - Perl DateTime extension for computing the sunrise/sunset on a given day
@@ -1142,6 +1145,8 @@ If the location is beyond either polar circle, and if the date is
 near either solstice, there can be midnight sun or polar night.
 In this case, there is neither sunrise nor sunset, and
 the module C<carp>s that the sun never rises or never sets.
+Then, it returns the time at which the sun is at its highest
+or lowest point.
 
 =head1 DEPENDENCIES
 
@@ -1193,7 +1198,7 @@ Co-maintainer: Jean Forget <JFORGET@cpan.org>
 
 for providing help with converting Paul's C code to perl.
 
-=item Flavio S. Glock [fglock@pucrs.br]
+=item Flávio S. Glock [fglock@pucrs.br]
 
 for providing the the interface to the DateTime::Set
 module.
@@ -1278,9 +1283,9 @@ perl(1).
 
 DateTime Web page at http://datetime.perl.org/
 
-DateTime::Set documentation
+DateTime::Set
 
-DateTime::SpanSet documentation
+DateTime::SpanSet
 
 Astro::Sunrise
 
