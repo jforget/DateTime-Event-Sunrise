@@ -1,5 +1,5 @@
 #
-#     Test script for DateTime::Event::Sunrise
+#     Test script for DateTime::Event::Sunrise (see RT ticket 36532)
 #     Copyright (C) 2013 Ron Hill and Jean Forget
 #
 #     This program is distributed under the same terms as Perl 5.16.3:
