@@ -26,6 +26,10 @@ my $INV360 = ( 1.0 / 360.0 );
 
 my $upper_limb = '1';
 
+# Julian day number for the 0th January 2000 (that is, 31st December 1999)
+my $jd_2000_Jan_0 = DateTime->new(year => 1999, month => 12, day => 31, time_zone => 'UTC')->jd;
+
+
 sub new {
     my $class = shift;
 
@@ -717,17 +721,8 @@ sub sun_RA_dec {
     # day number
     #
 sub days_since_2000_Jan_0 {
-
     my ($dt) = @_;
-
-    my $base_date = DateTime->new(
-      year      => 2000,
-      month     => 1,
-      day       => 1,
-      time_zone => 'UTC',
-    );
-
-    return int( $dt->jd - $base_date->jd );
+    return int($dt->jd - $jd_2000_Jan_0);
 }
 
 sub sind {
