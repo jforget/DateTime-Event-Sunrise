@@ -32,12 +32,12 @@ use DateTime;
 use DateTime::Event::Sunrise;
 
 my @tests = split "\n", <<'TEST';
-2.33  48.83 1 20 18:04:48
-2.33  48.83 1 21 18:06:19
-2.33  48.83 1 22 18:07:50
-92.33 48.83 0 20 12:03:17
-92.33 48.83 0 21 12:04:48
-92.33 48.83 0 22 12:06:19
+2.33  48.83 1 20 18:04:42
+2.33  48.83 1 21 18:06:12
+2.33  48.83 1 22 18:07:43
+92.33 48.83 0 20 12:03:10
+92.33 48.83 0 21 12:04:41
+92.33 48.83 0 22 12:06:11
 TEST
 
 plan (tests => scalar @tests);
@@ -47,6 +47,7 @@ foreach (@tests) {
   my $sunset = DateTime::Event::Sunrise->sunset(longitude  => $lon,
                                                  latitude  => $lat,
                                                  precise   => $precise,
+                                                 upper_limb => 0,
                                                 );
   my  $day =  DateTime->new(year => 2008, month => 3, day => $dd, time_zone => 'UTC');
 
