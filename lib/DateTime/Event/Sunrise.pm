@@ -33,45 +33,24 @@ sub new {
       croak "Odd number of parameters";
     }
     my %args = @_;
-    if (exists $args{height} && exists $args{altitude}) {
-      croak "Parameter 'altitude' is deprecated, use only 'height'";
-    }
     if (exists $args{iteration} && exists $args{precise}) {
       croak "Parameter 'iteration' is deprecated, use only 'precise'";
     }
 
-    unless (exists $args{altitude}) {
-      %args = validate(
-        @_, {
-            longitude => { type => SCALAR, optional => 1, default => 0 },
-            latitude  => { type => SCALAR, optional => 1, default => 0 },
-            height    => {
-                type    => SCALAR,
-                default => '-0.833',
-                regex   => qr/^(-?\d+(?:\.\d+)?)$/
-            },
-            iteration => { type => SCALAR, default => '0' },
-            precise   => { type => SCALAR, default => '0' },
-        }
-      );
+    %args = validate(
+      @_, {
+          longitude => { type => SCALAR, optional => 1, default => 0 },
+          latitude  => { type => SCALAR, optional => 1, default => 0 },
+          altitude  => {
+              type    => SCALAR,
+              default => '-0.833',
+              regex   => qr/^(-?\d+(?:\.\d+)?)$/
+          },
+          iteration => { type => SCALAR, default => '0' },
+          precise   => { type => SCALAR, default => '0' },
+      }
+    );
 
-      $args{altitude}  = $args{height};
-    }
-    else {
-      %args = validate(
-        @_, {
-            longitude => { type => SCALAR, optional => 1, default => 0 },
-            latitude  => { type => SCALAR, optional => 1, default => 0 },
-            altitude  => {
-                type    => SCALAR,
-                regex   => qr/^(0|-0.25|-0.583|-0.833|-6|-12|-15|-18)$/
-            },
-            iteration => { type => SCALAR, default => '0' },
-            precise   => { type => SCALAR, default => '0' },
-        }
-      );
-      $args{height}  = $args{altitude};
-    }
     # Making old and new parameters synonymous
     unless (exists $args{precise}) {
       $args{precise} = $args{iteration};
@@ -954,16 +933,14 @@ numbers, Southern latitudes are negative numbers.
 
 Default value is 0, that is any location on the equator.
 
-=item height
+=item altitude
 
-This is the height of the Sun at sunrise or sunset. In astronomical context, the height
-is the angle between the Sun and the local horizon. It is expressed as degrees, usually
+This is the height of the Sun at sunrise or sunset. In astronomical context, the altitude or
+height is the angle between the Sun and the local horizon. It is expressed as degrees, usually
 with a negative number, since the Sun is I<below> the horizon.
 
 Default value is -0.833, that is when the sun's upper limb touches the horizon, while
 taking in account the light refraction.
-
-This parameter replaces the C<altitude> deprecated parameter.
 
 =item precise
 
