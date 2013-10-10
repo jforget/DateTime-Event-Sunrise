@@ -1,3 +1,4 @@
+# -*- encoding: utf-8; indent-tabs-mode: nil -*-
 #
 #     Test script for DateTime::Event::Sunrise
 #     Copyright (C) 2013 Ron Hill and Jean Forget
@@ -36,37 +37,27 @@ use DateTime::Event::Sunrise;
 
 my @data = data();
 plan tests => 2 * @data;
-my $fudge = 3;
+my $fudge = 2;
 
-my $minus_2mn = DateTime::Duration->new(minutes => -$fudge);
-my $plus_2mn  = DateTime::Duration->new(minutes =>  $fudge);
+my $minus_2mn = DateTime::Duration->new(seconds => -$fudge);
+my $plus_2mn  = DateTime::Duration->new(seconds =>  $fudge);
 for  (@data) {
     my ($yyyy, $mm, $dd, $city, $ltd, $ltm, $ltc,  $lgd, $lgm, $lgc, $altitude, $upper_limb, $result)
          = $_ =~ /^(\d{4})\s+(\d\d?)\s+(\d\d?)
-       	   	   \s+(\w+)
-       	   	   \s+(\d+)\s+(\d+)\s+(\w)
-       	   	   \s+(\d+)\s+(\d+)\s+(\w)
-       	   	   \s+([-.0-9]+)
-       	   	   \s+([01])
-       	   	   \s+(.*)$/x;
+                   \s+(\w+)
+                   \s+(\d+)\s+(\d+)\s+(\w)
+                   \s+(\d+)\s+(\d+)\s+(\w)
+                   \s+([-.0-9]+)
+                   \s+([01])
+                   \s+(.*)$/x;
 
     my ($lat, $long, $offset, $expected_rise_low, $expected_rise_high, $expected_set_low, $expected_set_high);
     if ($result =~ /sunrise: (\d\d):(\d\d):(\d\d)\s+sunset:\s+(\d\d):(\d\d):(\d\d)/) {
       my ($hh1, $mm1, $ss1, $hh2, $mm2, $ss2) = ($1, $2, $3, $4, $5, $6);
-      $expected_rise_low  = DateTime->new(year => $yyyy, month => $mm, day => $dd) + DateTime::Duration->new(hours => $hh1, minutes => $mm1 - $fudge, seconds => $ss1);
-      $expected_rise_high = DateTime->new(year => $yyyy, month => $mm, day => $dd) + DateTime::Duration->new(hours => $hh1, minutes => $mm1 + $fudge, seconds => $ss1);
-      $expected_set_low   = DateTime->new(year => $yyyy, month => $mm, day => $dd) + DateTime::Duration->new(hours => $hh2, minutes => $mm2 - $fudge, seconds => $ss2);
-      $expected_set_high  = DateTime->new(year => $yyyy, month => $mm, day => $dd) + DateTime::Duration->new(hours => $hh2, minutes => $mm2 + $fudge, seconds => $ss2);
-      #$expected_rise_low  = DateTime->new(year => $yyyy, month => $mm, day => $dd, hour => $hh1, minute => $mm1) + $minus_2mn;
-      #$expected_rise_high = DateTime->new(year => $yyyy, month => $mm, day => $dd, hour => $hh1, minute => $mm1) + $plus_2mn;
-      #$expected_set_low   = DateTime->new(year => $yyyy, month => $mm, day => $dd, hour => $hh2, minute => $mm2) + $minus_2mn;
-      #$expected_set_high  = DateTime->new(year => $yyyy, month => $mm, day => $dd, hour => $hh2, minute => $mm2) + $plus_2mn;
-    }
-    else {
-      $expected_rise_low  = DateTime->new(year => $yyyy, month => $mm, day => $dd, hour => 12, minute =>  0) + $minus_2mn;
-      $expected_rise_high = DateTime->new(year => $yyyy, month => $mm, day => $dd, hour => 12, minute =>  0) + $plus_2mn;
-      $expected_set_low   = DateTime->new(year => $yyyy, month => $mm, day => $dd, hour => 12, minute =>  0) + $minus_2mn;
-      $expected_set_high  = DateTime->new(year => $yyyy, month => $mm, day => $dd, hour => 12, minute =>  0) + $plus_2mn;
+      $expected_rise_low  = DateTime->new(year => $yyyy, month => $mm, day => $dd) + DateTime::Duration->new(hours => $hh1, minutes => $mm1, seconds => $ss1 - $fudge);
+      $expected_rise_high = DateTime->new(year => $yyyy, month => $mm, day => $dd) + DateTime::Duration->new(hours => $hh1, minutes => $mm1, seconds => $ss1 + $fudge);
+      $expected_set_low   = DateTime->new(year => $yyyy, month => $mm, day => $dd) + DateTime::Duration->new(hours => $hh2, minutes => $mm2, seconds => $ss2 - $fudge);
+      $expected_set_high  = DateTime->new(year => $yyyy, month => $mm, day => $dd) + DateTime::Duration->new(hours => $hh2, minutes => $mm2, seconds => $ss2 + $fudge);
     }
     if ( $ltc eq 'N' ) {
       $lat = sprintf("%.3f", $ltd + $ltm / 60);
@@ -90,15 +81,14 @@ for  (@data) {
     }
 
     my $sunrise = DateTime::Event::Sunrise->new(
-      longitude => $long,
-      latitude  => $lat,
-      altitude  => $altitude,
+                longitude  => $long,
+                latitude   => $lat,
+                altitude   => $altitude,
+                upper_limb => $upper_limb,
     );
 
     #my $dt = DateTime->new(year => $yyyy, month => $mm, day => $dd, time_zone => $offset);
     my $dt = DateTime->new(year => $yyyy, month => $mm, day => $dd);
-    #my $tmp_rise = round_to_min( $sunrise->sunrise_datetime($dt) );
-    #my $tmp_set  = round_to_min( $sunrise->sunset_datetime ($dt) );
     my $tmp_rise = $sunrise->sunrise_datetime($dt);
     my $tmp_set  = $sunrise->sunset_datetime ($dt);
 

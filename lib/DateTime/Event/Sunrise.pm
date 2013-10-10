@@ -24,8 +24,6 @@ $RADEG   = ( 180 / pi );
 $DEGRAD  = ( pi / 180 );
 my $INV360 = ( 1.0 / 360.0 );
 
-my $upper_limb = '1';
-
 # Julian day number for the 0th January 2000 (that is, 31st December 1999)
 my $jd_2000_Jan_0 = DateTime->new(year => 1999, month => 12, day => 31, time_zone => 'UTC')->jd;
 
@@ -50,8 +48,9 @@ sub new {
               default => '-0.833',
               regex   => qr/^(-?\d+(?:\.\d+)?)$/
           },
-          iteration => { type => SCALAR, default => '0' },
-          precise   => { type => SCALAR, default => '0' },
+          iteration  => { type => SCALAR, default => '0' },
+          precise    => { type => SCALAR, default => '0' },
+          upper_limb => { type => SCALAR, default => '1' },
       }
     );
 
@@ -413,11 +412,9 @@ sub _sunrise {
 
         # This is the initial start
 
-        my $d =
-          days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
-        my ( $tmp_rise_1, $tmp_set_1 ) =
-          _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
-          15.04107 );
+        my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
+        my ($tmp_rise_1, $tmp_set_1) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
+                                                        15.04107, $self->{upper_limb});
 
         # Now we have the initial rise/set times next recompute d using the exact moment
         # recompute sunrise
@@ -427,15 +424,12 @@ sub _sunrise {
         until ( equal( $tmp_rise_2, $tmp_rise_3, 8 ) ) {
 
             my $d_sunrise_1 = $d + $tmp_rise_1 / 24.0;
-            ( $tmp_rise_2, undef ) =
-              _sunrise_sunset( $d_sunrise_1, $self->{longitude},
-              $self->{latitude}, $altit, 15.04107 );
+            ($tmp_rise_2, undef) = _sunrise_sunset($d_sunrise_1, $self->{longitude}, $self->{latitude},
+                                                     $altit, 15.04107, $self->{upper_limb});
             $tmp_rise_1 = $tmp_rise_3;
             my $d_sunrise_2 = $d + $tmp_rise_2 / 24.0;
-            ( $tmp_rise_3, undef ) =
-              _sunrise_sunset( $d_sunrise_2, $self->{longitude},
-              $self->{latitude}, $altit, 15.04107 );
-
+            ($tmp_rise_3, undef) = _sunrise_sunset($d_sunrise_2, $self->{longitude}, $self->{latitude},
+                                                     $altit, 15.04107, $self->{upper_limb});
         }
 
         my $tmp_set_2 = 9;
@@ -444,19 +438,16 @@ sub _sunrise {
         until ( equal( $tmp_set_2, $tmp_set_3, 8 ) ) {
 
             my $d_sunset_1 = $d + $tmp_set_1 / 24.0;
-            ( undef, $tmp_set_2 ) =
-              _sunrise_sunset( $d_sunset_1, $self->{longitude},
-              $self->{latitude}, $altit, 15.04107 );
+            (undef, $tmp_set_2) = _sunrise_sunset( $d_sunset_1, $self->{longitude}, $self->{latitude},
+                                                     $altit, 15.04107, $self->{upper_limb});
             $tmp_set_1 = $tmp_set_3;
             my $d_sunset_2 = $d + $tmp_set_2 / 24.0;
-            ( undef, $tmp_set_3 ) =
-              _sunrise_sunset( $d_sunset_2, $self->{longitude},
-              $self->{latitude}, $altit, 15.04107 );
+            (undef, $tmp_set_3) = _sunrise_sunset( $d_sunset_2, $self->{longitude}, $self->{latitude},
+                                                     $altit, 15.04107, $self->{upper_limb});
 
         }
 
-        my ( $second_rise, $second_set ) =
-          convert_hour( $tmp_rise_3, $tmp_set_3 );
+        my ( $second_rise, $second_set ) = convert_hour( $tmp_rise_3, $tmp_set_3 );
 
         # This is to fix the datetime object to use a duration
         # instead of blindly setting the hour/min
@@ -481,8 +472,7 @@ sub _sunrise {
     }
     else {
         my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
-        my ( $h1, $h2 ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
-                           15.0 );
+        my ( $h1, $h2 ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb});
         my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
         my $rise_dur = DateTime::Duration->new( seconds => $seconds_rise );
         my $set_dur  = DateTime::Duration->new( seconds => $seconds_set );
@@ -511,7 +501,7 @@ sub _sunrise {
     #
     # _GIVEN
     # 
-    #  days since jan 1 2000, longitude, latitude, reference sun height and $h
+    #  days since Jan 0 2000, longitude, latitude, reference sun height $h and the "upper limb" flag
     # _THEN
     #
     #  Compute the sunrise/sunset times for that day   
@@ -522,13 +512,13 @@ sub _sunrise {
     #
 sub _sunrise_sunset {
 
-    my ( $d, $lon, $lat, $altit, $h ) = @_;
+    my ( $d, $lon, $lat, $altit, $h, $upper_limb ) = @_;
 
     # Compute local sidereal time of this moment
-    my $sidtime = revolution( GMST0($d) + 180.0 + $lon );
+    my $sidtime = revolution(GMST0($d) + 180.0 + $lon);
 
     # Compute Sun's RA + Decl + distance at this moment
-    my ( $sRA, $sdec, $sr ) = sun_RA_dec($d);
+    my ($sRA, $sdec, $sr) = sun_RA_dec($d);
 
     # Compute time when Sun is at south - in hours UT
     my $tsouth  = 12.0 - rev180( $sidtime - $sRA ) / $h;
@@ -544,9 +534,8 @@ sub _sunrise_sunset {
     # Compute the diurnal arc that the Sun traverses to reach 
     # the specified height altit:
 
-    my $cost =
-      ( sind($altit) - sind($lat) * sind($sdec) ) /
-      ( cosd($lat) * cosd($sdec) );
+    my $cost = (sind($altit) - sind($lat) * sind($sdec))
+               / (cosd($lat) * cosd($sdec));
 
     my $t;
     if ( $cost >= 1.0 ) {
@@ -589,14 +578,9 @@ sub _sunrise_sunset {
     # Sidtime
     #
 sub GMST0 {
-
     my ($d) = @_;
-
-    my $sidtim0 =
-      revolution( ( 180.0 + 356.0470 + 282.9404 ) +
-      ( 0.9856002585 + 4.70935E-5 ) * $d );
+    my $sidtim0 = revolution( ( 180.0 + 356.0470 + 282.9404 ) + ( 0.9856002585 + 4.70935E-5 ) * $d );
     return $sidtim0;
-
 }
 
     #
@@ -643,9 +627,8 @@ sub sunpos {
 
     my $x = cosd($Eccentric_anomaly) - $Eccentricity_of_Earth_orbit;
 
-    my $y =
-      sqrt( 1.0 - $Eccentricity_of_Earth_orbit * $Eccentricity_of_Earth_orbit )
-      * sind($Eccentric_anomaly);
+    my $y = sqrt( 1.0 - $Eccentricity_of_Earth_orbit * $Eccentricity_of_Earth_orbit )
+            * sind($Eccentric_anomaly);
 
     my $Solar_distance = sqrt( $x * $x + $y * $y );    # Solar distance
     my $True_anomaly = atan2d( $y, $x );               # True anomaly
@@ -947,6 +930,13 @@ and obtain a better precision.
 Default value is 0, to choose the simple algorithm.
 
 This parameter replaces the C<iteration> deprecated parameter.
+
+=item upper_limb
+
+Boolean to choose between checking the Sun's upper limb or its center.
+A true value selects the upper limb, a false value selects the center.
+
+Default value is 1, selecting the upper limb.
 
 =back
 
