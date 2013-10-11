@@ -1,3 +1,4 @@
+# -*- encoding: utf-8; indent-tabs-mode: nil -*-
 #
 #     Test script for DateTime::Event::Sunrise
 #     Copyright (C) 2003, 2004, 2013 Ron Hill and Jean Forget
@@ -163,25 +164,9 @@ for  (@data) {
     my $tmp_set_lo  = $tmp_set ->clone->add(seconds => - $fudge)->hms;
     my $tmp_set_hi  = $tmp_set ->clone->add(seconds =>   $fudge)->hms;
 
-print "$tmp_rise_lo $9 $tmp_rise_hi -- $tmp_set_lo $10 $tmp_set_hi\n";
-    ok(($tmp_rise_lo lt $9) and ($9 lt $tmp_rise_hi));
-    ok(($tmp_set_lo lt $10) and ($10 lt $tmp_set_hi));
+    ok(($tmp_rise_lo lt $9) && ($9 lt $tmp_rise_hi), "sunrise for $1, $2");
+    ok(($tmp_set_lo lt $10) && ($10 lt $tmp_set_hi), "sunset  for $1, $2");
 
-}
-
-sub round_to_min {
-    my ($tmp_date) = @_;
-
-    if ( $tmp_date->second < '30' ) {
-        return ( $tmp_date->truncate( to => 'minute' ) );
-    }
-    elsif ( $tmp_date->second => '30' ) {
-        my $d = DateTime::Duration->new(
-          minutes => '1',
-        );
-        my $new_date = $tmp_date + $d;
-        return ( $new_date->truncate( to => 'minute' ) );
-    }
 }
 
 sub data {

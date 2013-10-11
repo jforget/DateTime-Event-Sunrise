@@ -31,16 +31,12 @@ use POSIX qw(floor ceil);
 use Test::More;
 use DateTime;
 use DateTime::Duration;
-use DateTime::Span;
-use DateTime::SpanSet;
 use DateTime::Event::Sunrise;
 
 my @data = data();
 plan tests => 2 * @data;
 my $fudge = 2;
 
-my $minus_2mn = DateTime::Duration->new(seconds => -$fudge);
-my $plus_2mn  = DateTime::Duration->new(seconds =>  $fudge);
 for  (@data) {
     my ($yyyy, $mm, $dd, $city, $ltd, $ltm, $ltc,  $lgd, $lgm, $lgc, $altitude, $upper_limb, $result)
          = $_ =~ /^(\d{4})\s+(\d\d?)\s+(\d\d?)
@@ -98,21 +94,6 @@ for  (@data) {
     ok( $tmp_rise >= $expected_rise_low && $tmp_rise <= $expected_rise_high, join ' ', "Sunrise for $city", $tmp_rise->ymd, $expected_rise_low->hms, $tmp_rise->hms, $expected_rise_high->hms, $upper_limb, $altitude);
     ok( $tmp_set  >= $expected_set_low  && $tmp_set  <= $expected_set_high,  join ' ', "Sunset  for $city", $tmp_set->ymd, $expected_set_low->hms, $tmp_set->hms, $expected_set_high->hms, $upper_limb, $altitude);
 
-}
-
-sub round_to_min {
-    my ($tmp_date) = @_;
-
-    if ( $tmp_date->second < '30' ) {
-        return ( $tmp_date->truncate( to => 'minute' ) );
-    }
-    elsif ( $tmp_date->second => '30' ) {
-        my $d = DateTime::Duration->new(
-          minutes => '1',
-        );
-        my $new_date = $tmp_date + $d;
-        return ( $new_date->truncate( to => 'minute' ) );
-    }
 }
 
 sub data {
