@@ -834,7 +834,7 @@ sub convert_hour {
     return ( $seconds_rise, $seconds_set );
 }
 
-1962; # Hint: by RZ, better known as BD
+1962; # Hint: sung by RZ, better known as BD
 
 =encoding utf8
 
@@ -920,6 +920,9 @@ with a negative number, since the Sun is I<below> the horizon.
 Default value is -0.833, that is when the sun's upper limb touches the horizon, while
 taking in account the light refraction.
 
+Positive altitude are allowed, in case the location is near a mountain range
+behind which the sun rises or sets.
+
 =item precise
 
 Boolean to control which algorithm is used. A false value gives a simple algorithm, but
@@ -936,7 +939,11 @@ This parameter replaces the C<iteration> deprecated parameter.
 Boolean to choose between checking the Sun's upper limb or its center.
 A true value selects the upper limb, a false value selects the center.
 
-Default value is 1, selecting the upper limb.
+This parameter is significant only when the altitude does not already deal with the sun radius.
+When the altitude takes into account the sun radius, this parameter should be false.
+
+Default value is 0, since the upper limb correction is already
+taken in account with the default -0.833 altitude.
 
 =back
 

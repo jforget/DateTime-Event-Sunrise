@@ -1,0 +1,10 @@
+-*- encoding: utf-8; indent-tabs-mode: nil -*-
+
+Better data coverage: the "precise" algorithm is not truly checked.
+
+Better code coverage: for example, check bad parameters
+
+Better documentation.
+
+Deal with the warnings "sun never sets" and "sun never rises", which
+may annoy some programmers.
