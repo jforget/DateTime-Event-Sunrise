@@ -50,7 +50,7 @@ sub new {
           },
           iteration  => { type => SCALAR, default => '0' },
           precise    => { type => SCALAR, default => '0' },
-          upper_limb => { type => SCALAR, default => '1' },
+          upper_limb => { type => SCALAR, default => '0' },
       }
     );
 

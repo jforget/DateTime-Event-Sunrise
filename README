@@ -13,6 +13,9 @@ To install this module type the following:
 
 or use your favorite utility: CPAN shell, cpanplus, cpanminus, dist-zilla, etc.
 
+Note: do not be disturbed by warnings "sun never rises" or "sun never sets" during
+"make test". They are nothing more than warnings.
+
 DEPENDENCIES
 
 This module requires these other modules and libraries:
