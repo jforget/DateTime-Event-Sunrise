@@ -173,6 +173,14 @@ for  (@data) {
 
 }
 
+#
+# The data below have been prepared by a C program which includes
+# Paul Schlyter's code. Therefore, what is tested is the compatibility
+# of the Perl code with the C code.
+#
+# See how this C program is generated in
+# https://github.com/jforget/Astro-Sunrise/blob/master/util/mktest-01d
+#
 sub data {
   return split "\n", <<'DATA';
 Aberdeen,            Scotland             57  9 N   2  9 W sunrise: 03:12:22 sunset: 21:08:11

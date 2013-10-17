@@ -96,6 +96,20 @@ for  (@data) {
 
 }
 
+#
+# The data below have been prepared by a C program which includes
+# Paul Schlyter's code. Therefore, what is tested is the compatibility
+# of the Perl code with the C code.
+#
+# See how this C program is generated in
+# https://github.com/jforget/Astro-Sunrise/blob/master/util/mktest-04
+#
+# Why those locations?
+# Greenwich because it is located on the eponymous prime meridian
+# Reykjavik, because it is close to the Northern Arctic Circle, so it can be used to check polar night and midnight sun
+# Quito because it is near the prime parallel, better known as "equator"
+# El Hierro, because it is located on a former prime meridian
+#
 sub data {
   return split "\n", <<'DATA';
 2013  1  1 Greenwich            51 28 N   0  0 E 10         0 sunrise: 09:50:02 sunset: 14:17:18
