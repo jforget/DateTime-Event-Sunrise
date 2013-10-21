@@ -1,5 +1,7 @@
 Revision history for Perl extension DateTime::Event::Sunrise.
 
+0.0504  ???
+
 0.0503  Thu 2013-10-17
         - stylistic and kwalitee issues: license, dependencies, use warnings
         - fix typos in the comments and POD and use UTF-8

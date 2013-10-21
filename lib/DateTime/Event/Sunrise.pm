@@ -19,7 +19,7 @@ use Params::Validate qw(:all);
 use Set::Infinite qw(inf $inf);
 use vars qw( $VERSION $RADEG $DEGRAD @ISA );
 @ISA     = qw( Exporter );
-$VERSION = '0.0503';
+$VERSION = '0.0504';
 $RADEG   = ( 180 / pi );
 $DEGRAD  = ( pi / 180 );
 my $INV360 = ( 1.0 / 360.0 );
