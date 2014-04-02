@@ -51,6 +51,7 @@ sub new {
           iteration  => { type => SCALAR, default => '0' },
           precise    => { type => SCALAR, default => '0' },
           upper_limb => { type => SCALAR, default => '0' },
+          silent     => { type => SCALAR, default => '0' },
       }
     );
 
@@ -398,6 +399,7 @@ sub _previous_sunset {
     # _RETURN
     # 
     # two DateTime objects with the date and time for sunrise and sunset
+    # two season flags for sunrise and sunset respectively
     #
 sub _sunrise {
 
@@ -406,6 +408,7 @@ sub _sunrise {
     my $cloned_dt = $dt->clone;
     my $altit     = $self->{altitude};
     my $precise   = defined( $self->{precise} ) ? $self->{precise} : 0;
+    my $silent    = defined( $self->{silent}  ) ? $self->{silent}  : 0;
     $cloned_dt->set_time_zone('floating');
 
     if ($precise) {
@@ -413,8 +416,9 @@ sub _sunrise {
         # This is the initial start
 
         my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
-        my ($tmp_rise_1, $tmp_set_1) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
-                                                        15.04107, $self->{upper_limb});
+        my ($tmp_rise_1, $tmp_set_1, $rise_season) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
+                                                                     15.04107, $self->{upper_limb}, $silent);
+        my $set_season = $rise_season;
 
         # Now we have the initial rise/set times next recompute d using the exact moment
         # recompute sunrise
@@ -424,12 +428,12 @@ sub _sunrise {
         until ( equal( $tmp_rise_2, $tmp_rise_3, 8 ) ) {
 
             my $d_sunrise_1 = $d + $tmp_rise_1 / 24.0;
-            ($tmp_rise_2, undef) = _sunrise_sunset($d_sunrise_1, $self->{longitude}, $self->{latitude},
-                                                     $altit, 15.04107, $self->{upper_limb});
+            ($tmp_rise_2, undef, undef) = _sunrise_sunset($d_sunrise_1, $self->{longitude}, $self->{latitude},
+                                                          $altit, 15.04107, $self->{upper_limb}, $silent);
             $tmp_rise_1 = $tmp_rise_3;
             my $d_sunrise_2 = $d + $tmp_rise_2 / 24.0;
-            ($tmp_rise_3, undef) = _sunrise_sunset($d_sunrise_2, $self->{longitude}, $self->{latitude},
-                                                     $altit, 15.04107, $self->{upper_limb});
+            ($tmp_rise_3, undef, $rise_season) = _sunrise_sunset($d_sunrise_2, $self->{longitude}, $self->{latitude},
+                                                                 $altit, 15.04107, $self->{upper_limb}, $silent);
         }
 
         my $tmp_set_2 = 9;
@@ -438,12 +442,12 @@ sub _sunrise {
         until ( equal( $tmp_set_2, $tmp_set_3, 8 ) ) {
 
             my $d_sunset_1 = $d + $tmp_set_1 / 24.0;
-            (undef, $tmp_set_2) = _sunrise_sunset( $d_sunset_1, $self->{longitude}, $self->{latitude},
-                                                     $altit, 15.04107, $self->{upper_limb});
+            (undef, $tmp_set_2, undef) = _sunrise_sunset( $d_sunset_1, $self->{longitude}, $self->{latitude},
+                                                          $altit, 15.04107, $self->{upper_limb}, $silent);
             $tmp_set_1 = $tmp_set_3;
             my $d_sunset_2 = $d + $tmp_set_2 / 24.0;
-            (undef, $tmp_set_3) = _sunrise_sunset( $d_sunset_2, $self->{longitude}, $self->{latitude},
-                                                     $altit, 15.04107, $self->{upper_limb});
+            (undef, $tmp_set_3, $set_season) = _sunrise_sunset( $d_sunset_2, $self->{longitude}, $self->{latitude},
+                                                                $altit, 15.04107, $self->{upper_limb}, $silent);
 
         }
 
@@ -468,11 +472,11 @@ sub _sunrise {
         my $tz        = $dt->time_zone;
         $rise_time->set_time_zone($tz) unless $tz->is_floating;
         $set_time->set_time_zone($tz) unless $tz->is_floating;
-        return ( $rise_time, $set_time );
+        return ( $rise_time, $set_time, $rise_season, $set_season );
     }
     else {
         my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
-        my ( $h1, $h2 ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb});
+        my ( $h1, $h2, $season ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb}, $silent);
         my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
         my $rise_dur = DateTime::Duration->new( seconds => $seconds_rise );
         my $set_dur  = DateTime::Duration->new( seconds => $seconds_set );
@@ -490,7 +494,7 @@ sub _sunrise {
         my $tz        = $dt->time_zone;
         $rise_time->set_time_zone($tz) unless $tz->is_floating;
         $set_time->set_time_zone($tz) unless $tz->is_floating;
-        return ( $rise_time, $set_time );
+        return ( $rise_time, $set_time, $season, $season );
     }
 
 }
@@ -501,7 +505,7 @@ sub _sunrise {
     #
     # _GIVEN
     # 
-    #  days since Jan 0 2000, longitude, latitude, reference sun height $h and the "upper limb" flag
+    #  days since Jan 0 2000, longitude, latitude, reference sun height $h and the "upper limb" and "silent" flags
     # _THEN
     #
     #  Compute the sunrise/sunset times for that day   
@@ -509,10 +513,11 @@ sub _sunrise {
     # _RETURN
     #
     #  sunrise and sunset times as hours (GMT Time) 
+    #  season flag: -1 for polar night, +1 for midnight sun, 0 for day and night
     #
 sub _sunrise_sunset {
 
-    my ( $d, $lon, $lat, $altit, $h, $upper_limb ) = @_;
+    my ( $d, $lon, $lat, $altit, $h, $upper_limb, $silent ) = @_;
 
     # Compute local sidereal time of this moment
     my $sidtime = revolution(GMST0($d) + 180.0 + $lon);
@@ -538,13 +543,20 @@ sub _sunrise_sunset {
                / (cosd($lat) * cosd($sdec));
 
     my $t;
+    my $season = 0;
     if ( $cost >= 1.0 ) {
-        carp "Sun never rises!!\n";
+        unless ($silent) {
+          carp "Sun never rises!!\n";
+        }
         $t = 0.0;    # Sun always below altit
+        $season = -1;
     }
     elsif ( $cost <= -1.0 ) {
-        carp "Sun never sets!!\n";
+        unless ($silent) {
+          carp "Sun never sets!!\n";
+        }
         $t = 12.0;    # Sun always above altit
+        $season = +1;
     }
     else {
         $t = acosd($cost) / 15.0;    # The diurnal arc, hours
@@ -554,7 +566,7 @@ sub _sunrise_sunset {
 
     my $hour_rise_ut = $tsouth - $t;
     my $hour_set_ut  = $tsouth + $t;
-    return ( $hour_rise_ut, $hour_set_ut );
+    return ( $hour_rise_ut, $hour_set_ut, $season );
 
 }
 
