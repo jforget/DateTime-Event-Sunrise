@@ -227,6 +227,96 @@ sub sunrise_sunset_span {
     );
 }
 
+#
+# FUNCTIONAL SEQUENCE for is_polar_night
+#
+# _GIVEN
+# 
+# A sunrise object
+# A DateTime object
+# 
+# _THEN
+#
+#  Validate the DateTime object is valid  
+#  Compute sunrise and sunset
+#
+# _RETURN
+#
+#  A boolean flag telling whether the sun will stay under the horizon or not
+#
+sub is_polar_night {
+
+    my $self  = shift;
+    my $dt    = shift;
+    my $class = ref($dt);
+
+    if ( ! $dt->isa('DateTime') ) {
+        croak("Dates need to be DateTime objects");
+    }
+    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt );
+    return ($rise_season < 0 || $set_season < 0);
+}
+
+#
+# FUNCTIONAL SEQUENCE for is_polar_day
+#
+# _GIVEN
+# 
+# A sunrise object
+# A DateTime object
+# 
+# _THEN
+#
+#  Validate the DateTime object is valid  
+#  Compute sunrise and sunset
+#
+# _RETURN
+#
+#  A boolean flag telling whether the sun will stay above the horizon or not
+#
+sub is_polar_day {
+
+    my $self  = shift;
+    my $dt    = shift;
+    my $class = ref($dt);
+
+    if ( ! $dt->isa('DateTime') ) {
+        croak("Dates need to be DateTime objects");
+    }
+    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt );
+    return ($rise_season > 0 || $set_season > 0);
+}
+
+#
+# FUNCTIONAL SEQUENCE for is_day_and_night
+#
+# _GIVEN
+# 
+# A sunrise object
+# A DateTime object
+# 
+# _THEN
+#
+#  Validate the DateTime object is valid  
+#  Compute sunrise and sunset
+#
+# _RETURN
+#
+#  A boolean flag telling whether the sun will rise and set or not
+#
+sub is_day_and_night {
+
+    my $self  = shift;
+    my $dt    = shift;
+    my $class = ref($dt);
+
+    if ( ! $dt->isa('DateTime') ) {
+        croak("Dates need to be DateTime objects");
+    }
+    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt );
+    return ($rise_season == 0 && $set_season == 0);
+}
+
     #
     #
     # FUNCTIONAL SEQUENCE for _following_sunrise 
@@ -977,6 +1067,26 @@ for the same day, but with the time of the sunrise or sunset, respectively.
 This method applies to C<DateTime::Event::Sunrise> objects. It accepts a 
 C<DateTime> object as the second parameter. It returns a C<DateTime::Span>
 object, beginning at sunrise and ending at sunset.
+
+=head2 is_polar_night, is_polar_day, is_day_and_night
+
+These methods apply to C<DateTime::Event::Sunrise> objects. They accept a 
+C<DateTime> object as the second parameter. They return a boolean indicating
+the following condutions:
+
+=over 4
+
+=item * is_polar_night is true when the sun stays under the horizon. Or rather
+under the altitude provided when the C<DateTime::Event::Sunrise> was created.
+
+=item * is_polar_day is true when the sun stays above the horizon,
+resulting in a "Midnight sun". Or rather when it stays under the
+altitude provided when the C<DateTime::Event::Sunrise> was created.
+
+=item * is_day_and_night is true when neither is_polar_day, nor is_polar_night
+are true.
+
+=back
 
 =head2 next current previous contains as_list iterator
 
