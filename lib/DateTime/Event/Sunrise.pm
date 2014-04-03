@@ -1070,6 +1070,17 @@ When the altitude takes into account the sun radius, this parameter should be fa
 Default value is 0, since the upper limb correction is already
 taken in account with the default -0.833 altitude.
 
+=item silent
+
+Boolean to control the output of some warning messages.
+With polar locations and dates near the winter solstice or the summer solstice,
+it may happen that the sun never rises above the horizon or never sets below.
+If this parameter is set to false, the module will send warnings for these
+conditions. If this parameter is set to true, the module will not pollute
+your F<STDERR> stream.
+
+Default value is 0, for backward compatibility.
+
 =back
 
 =head2 sunrise, sunset
@@ -1100,11 +1111,11 @@ the following condutions:
 =over 4
 
 =item * is_polar_night is true when the sun stays under the horizon. Or rather
-under the altitude provided when the C<DateTime::Event::Sunrise> was created.
+under the altitude parameter used when the C<DateTime::Event::Sunrise> object was created.
 
 =item * is_polar_day is true when the sun stays above the horizon,
 resulting in a "Midnight sun". Or rather when it stays under the
-altitude provided when the C<DateTime::Event::Sunrise> was created.
+altitude parameter used when the C<DateTime::Event::Sunrise> object was created.
 
 =item * is_day_and_night is true when neither is_polar_day, nor is_polar_night
 are true.
