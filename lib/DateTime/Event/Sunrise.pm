@@ -979,6 +979,28 @@ DateTime::Event::Sunrise - Perl DateTime extension for computing the sunrise/sun
     say $dt_yapc_na_rise, ' ', $dt_yapc_na_set;
   }
 
+  # If you deal with a polar location
+  my $sun_in_Halley = DateTime::Event::Sunrise->new(
+                                 longitude => -26.65, # 26°39'W
+                                 latitude  => -75.58, # 75°35'S
+                                 precise   => 1,
+                                 );
+  my $Alex_arrival = DateTime->new(year  => 2006, # approximate date, not necessarily the exact one
+                                   month =>    1,
+                                   day   =>   15,
+                                   time_zone => 'Antarctica/Rothera');
+  say $Alex_arrival->strftime("Alex Gough (a Perl programmer) arrived at Halley Base on %Y-%m-%d.");
+  if ($sun_in_Halley->is_polar_day($Alex_arrival)) {
+    say "It would be days, maybe weeks, before the sun would set.";
+  }
+  elsif ($sun_in_Halley->is_polar_night($Alex_arrival)) {
+    say "It would be days, maybe weeks, before the sun would rise.";
+  }
+  else {
+    my $sunset = $sun_in_Halley->sunset_datetime($Alex_arrival);
+    say $sunset->strftime("And he saw his first antarctic sunset at %H:%M:%S.");
+  }
+
 =head1 DESCRIPTION
 
 This module will computes the time of sunrise and sunset for a given date
