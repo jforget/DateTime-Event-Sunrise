@@ -253,7 +253,7 @@ sub is_polar_night {
     if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
-    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt );
+    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt, 1 );
     return ($rise_season < 0 || $set_season < 0);
 }
 
@@ -283,7 +283,7 @@ sub is_polar_day {
     if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
-    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt );
+    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt, 1 );
     return ($rise_season > 0 || $set_season > 0);
 }
 
@@ -313,7 +313,7 @@ sub is_day_and_night {
     if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
-    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt );
+    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt, 1 );
     return ($rise_season == 0 && $set_season == 0);
 }
 
@@ -493,12 +493,13 @@ sub _previous_sunset {
     #
 sub _sunrise {
 
-    my $self      = shift;
-    my $dt        = shift;
+    my ($self, $dt, $silent) = @_;
     my $cloned_dt = $dt->clone;
     my $altit     = $self->{altitude};
     my $precise   = defined( $self->{precise} ) ? $self->{precise} : 0;
-    my $silent    = defined( $self->{silent}  ) ? $self->{silent}  : 0;
+    unless (defined $silent) {
+      $silent    = defined( $self->{silent}  ) ? $self->{silent}  : 0;
+    }
     $cloned_dt->set_time_zone('floating');
 
     if ($precise) {
