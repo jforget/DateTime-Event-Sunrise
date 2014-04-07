@@ -1114,7 +1114,7 @@ the following condutions:
 under the altitude parameter used when the C<DateTime::Event::Sunrise> object was created.
 
 =item * is_polar_day is true when the sun stays above the horizon,
-resulting in a "Midnight sun". Or rather when it stays under the
+resulting in a "Midnight sun". Or rather when it stays above the
 altitude parameter used when the C<DateTime::Event::Sunrise> object was created.
 
 =item * is_day_and_night is true when neither is_polar_day, nor is_polar_night
@@ -1317,6 +1317,11 @@ POSIX
 Math::Trig
 
 =back
+
+=head1 BUGS AND CAVEATS
+
+Using a latitude of 90 degrees (North Pole or South Pole) gives curious results.
+I guess that it is linked with a ambiguous value resulting from a 0/0 computation.
 
 =head1 AUTHORS
 
