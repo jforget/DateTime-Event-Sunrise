@@ -30,6 +30,14 @@ is a sure recipe to have lurking bugs in your code.
 So I will strive to have a better code coverage, 
 while not forgetting to expand the data coverage.
 
+Yet, the original author has provided six trigonometrical
+function using degrees: sin, cos, tan, asin, acos, atan.
+But only three of them are used in the module. So
+the other three are not covered by the tests. I will leave
+them just like that, I will neither delete them, nor create
+a bogus test file just to ensure there are green-colored
+in the Devel::Cover reports.
+
 Other topics
 ------------
 
