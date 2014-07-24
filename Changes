@@ -1,6 +1,9 @@
 Revision history for Perl extension DateTime::Event::Sunrise.
 
-0.0504  ???
+0.0504  Thu 2014-07-24
+        - add the "is_polar_night", "is_polar_day" and "is_day_and_night" boolean methods
+        - add a "silent" build parameter, which removes the warnings about the sun never rising / never setting
+        - add a test file for the parameter checking
 
 0.0503  Thu 2013-10-17
         - stylistic and kwalitee issues: license, dependencies, use warnings
