@@ -22,6 +22,16 @@ This module requires these other modules and libraries:
 
   DateTime.pm
   DateTime::Set
+  DateTime::Duration
+  DateTime::Span
+  DateTime::SpanSet
+  POSIX
+  Math::Trig
+  Carp
+  Params::Validate
+  Set::Infinite
+  Test::More
+  Test::Exception
 
 COPYRIGHT AND LICENCE
 
