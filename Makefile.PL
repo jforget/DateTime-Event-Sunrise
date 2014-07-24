@@ -19,5 +19,6 @@ WriteMakefile(
                              'DateTime::Duration' => '0',
                              'DateTime::Span'     => '0',
                              'DateTime::SpanSet'  => '0',
+                             'Test::Exception'    => '0',
                            },
 );
