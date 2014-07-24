@@ -43,24 +43,24 @@ dies_ok { DateTime::Event::Sunrise->new( precise => 1, iteration => 1) } "Parame
 my $sun = DateTime::Event::Sunrise->new (); # with all the default values!
 
 # 3
-dies_ok { my $s = $sun->sunset_datetime("2014-07-24") } "Dates need to be DateTime objects";
+dies_ok { my $s = $sun->sunset_datetime("illegal") } "Dates need to be DateTime objects";
 # 4
-dies_ok { my $s = $sun->sunrise_datetime("2014-07-24") } "Dates need to be DateTime objects";
+dies_ok { my $s = $sun->sunrise_datetime("illegal") } "Dates need to be DateTime objects";
 # 5
-dies_ok { my $s = $sun->sunrise_sunset_span("2014-07-24") } "Dates need to be DateTime objects";
+dies_ok { my $s = $sun->sunrise_sunset_span("illegal") } "Dates need to be DateTime objects";
 # 6
-dies_ok { my $s = $sun->is_polar_night("2014-07-24") } "Dates need to be DateTime objects";
+dies_ok { my $s = $sun->is_polar_night("illegal") } "Dates need to be DateTime objects";
 # 7
-dies_ok { my $s = $sun->is_polar_day("2014-07-24") } "Dates need to be DateTime objects";
+dies_ok { my $s = $sun->is_polar_day("illegal") } "Dates need to be DateTime objects";
 # 8
-dies_ok { my $s = $sun->is_day_and_night("2014-07-24") } "Dates need to be DateTime objects";
+dies_ok { my $s = $sun->is_day_and_night("illegal") } "Dates need to be DateTime objects";
 # 9
-dies_ok { my $s = $sun->_following_sunrise("2014-07-24") } "Dates need to be DateTime objects";
+dies_ok { my $s = $sun->_following_sunrise("illegal") } "Dates need to be DateTime objects";
 # 10
-dies_ok { my $s = $sun->_previous_sunrise("2014-07-24") } "Dates need to be DateTime objects";
+dies_ok { my $s = $sun->_previous_sunrise("illegal") } "Dates need to be DateTime objects";
 # 11
-dies_ok { my $s = $sun->_following_sunset("2014-07-24") } "Dates need to be DateTime objects";
+dies_ok { my $s = $sun->_following_sunset("illegal") } "Dates need to be DateTime objects";
 # 12
-dies_ok { my $s = $sun->_previous_sunset("2014-07-24") } "Dates need to be DateTime objects";
+dies_ok { my $s = $sun->_previous_sunset("illegal") } "Dates need to be DateTime objects";
 
 
