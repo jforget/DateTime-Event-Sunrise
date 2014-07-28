@@ -1,7 +1,7 @@
 # -*- encoding: utf-8; indent-tabs-mode: nil -*-
 #
 #     Perl DateTime extension for computing the sunrise/sunset on a given day
-#     Copyright (C) 1999-2004, 2013 Ron Hill and Jean Forget
+#     Copyright (C) 1999-2004, 2013-2014 Ron Hill and Jean Forget
 #
 #     See the license in the embedded documentation below.
 #
@@ -19,7 +19,7 @@ use Params::Validate qw(:all);
 use Set::Infinite qw(inf $inf);
 use vars qw( $VERSION $RADEG $DEGRAD @ISA );
 @ISA     = qw( Exporter );
-$VERSION = '0.0504';
+$VERSION = '0.0505';
 $RADEG   = ( 180 / pi );
 $DEGRAD  = ( pi / 180 );
 my $INV360 = ( 1.0 / 360.0 );
