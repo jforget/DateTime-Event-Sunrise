@@ -12,4 +12,5 @@ t/03nextprev.t
 t/04basic.t
 t/05polar.t
 t/06checks.t
+t/07loop.t
 META.yml                                 Module meta-data (added by MakeMaker)

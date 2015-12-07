@@ -516,6 +516,8 @@ sub _sunrise {
 
         my $tmp_rise_2 = 9;
         my $tmp_rise_3 = 0;
+
+        my $counter = 0;
         until ( equal( $tmp_rise_2, $tmp_rise_3, 8 ) ) {
 
             my $d_sunrise_1 = $d + $tmp_rise_1 / 24.0;
@@ -525,11 +527,13 @@ sub _sunrise {
             my $d_sunrise_2 = $d + $tmp_rise_2 / 24.0;
             ($tmp_rise_3, undef, $rise_season) = _sunrise_sunset($d_sunrise_2, $self->{longitude}, $self->{latitude},
                                                                  $altit, 15.04107, $self->{upper_limb}, $silent);
+            last if ++$counter > 10;
         }
 
         my $tmp_set_2 = 9;
         my $tmp_set_3 = 0;
 
+        $counter = 0;
         until ( equal( $tmp_set_2, $tmp_set_3, 8 ) ) {
 
             my $d_sunset_1 = $d + $tmp_set_1 / 24.0;
@@ -539,6 +543,7 @@ sub _sunrise {
             my $d_sunset_2 = $d + $tmp_set_2 / 24.0;
             (undef, $tmp_set_3, $set_season) = _sunrise_sunset( $d_sunset_2, $self->{longitude}, $self->{latitude},
                                                                 $altit, 15.04107, $self->{upper_limb}, $silent);
+            last if ++$counter > 10;
 
         }
 
@@ -1323,9 +1328,14 @@ Math::Trig
 Using a latitude of 90 degrees (North Pole or South Pole) gives curious results.
 I guess that it is linked with a ambiguous value resulting from a 0/0 computation.
 
+Using a longitude of 177 degrees, or any longitude near the 180 meridian, may also give
+curious results, especially with the precise algorithm.
+
+The precise algorithm should be overhauled.
+
 =head1 AUTHORS
 
-Ron Hill <rkhill@firstlight.net>
+Original author: Ron Hill <rkhill@firstlight.net>
 
 Co-maintainer: Jean Forget <JFORGET@cpan.org>
 
@@ -1355,6 +1365,10 @@ for his excellent web page on the subject.
 =item Rich Bowen (rbowen@rbowen.com)
 
 for suggestions.
+
+=item People at L<http://geocoder.opencagedata.com/>
+
+for noticing an endless loop condition in L<Astro::Sunrise> and for fixing it.
 
 =back
 
