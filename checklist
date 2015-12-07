@@ -6,6 +6,7 @@ https://github.com/Tux/Release-Checklist/blob/master/Checklist.md
 Check version number in:
 -- README
 -- Changes
+-- Makefile.PL
 -- lib/DateTime/Event/Sunrise.pm
 
 Kwalitee: do not bother with "has known license in source file". Check all others

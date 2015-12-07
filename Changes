@@ -1,5 +1,7 @@
 Revision history for Perl extension DateTime::Event::Sunrise.
 
+0.0506  ????
+
 0.0505  Mon 2015-12-07
       - Fix ticket 110016, to prevent endless loops
         (thank you http://geocoder.opencagedata.com/)
