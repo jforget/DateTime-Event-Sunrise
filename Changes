@@ -1,8 +1,9 @@
 Revision history for Perl extension DateTime::Event::Sunrise.
 
 0.0505  Mon 2015-12-07
-      - Fix ticket 110016, prevent endless loops
+      - Fix ticket 110016, to prevent endless loops
         (thank you http://geocoder.opencagedata.com/)
+        Actually a stop-gap measure, until the overhaul of the precise algorithm.
 
 0.0504  Thu 2014-07-24
         - add the "is_polar_night", "is_polar_day" and "is_day_and_night" boolean methods, 

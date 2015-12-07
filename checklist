@@ -23,3 +23,6 @@ Build META.{json,yml} and .tar.gz with perlbrew perl-lgdbl (or other? perl-5.20.
 Check contents of META.{json,yml}:
   version number (2x)
   minimum perl version
+  provides (with version number)
+  repository
+  

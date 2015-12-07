@@ -29,10 +29,10 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    'NAME'		=> 'DateTime::Event::Sunrise',
-    'VERSION_FROM'	=> 'lib/DateTime/Event/Sunrise.pm', # finds $VERSION
-    'ABSTRACT'		=> 'Perl DateTime extension for computing the sunrise/sunset on a given day',
-    'PREREQ_PM'		=> { 'DateTime::Set'    => '0.16',
+    'NAME'              => 'DateTime::Event::Sunrise',
+    'VERSION_FROM'      => 'lib/DateTime/Event/Sunrise.pm', # finds $VERSION
+    'ABSTRACT'          => 'Perl DateTime extension for computing the sunrise/sunset on a given day',
+    'PREREQ_PM'         => { 'DateTime::Set'    => '0.16',
                              'DateTime'         => '0.21',
                              'POSIX'            => '0',     # how can I find the minimum version without trying all of them? At least mention the dependency.
                              'Math::Trig'       => '0',
@@ -40,12 +40,48 @@ WriteMakefile(
                              'Params::Validate' => '0',
                              'Set::Infinite'    => '0',
                            },
-    'AUTHOR'		=> [ 'Ron Hill <rkhill@firstlight.net>', 'Jean Forget <JFORGET@cpan.org>' ],
-    'LICENSE'		=> 'perl',
+    'AUTHOR'            => [ 'Ron Hill <rkhill@firstlight.net>', 'Jean Forget <JFORGET@cpan.org>' ],
+    'LICENSE'           => 'perl',
+    # The oldest Perl to check DT::E::Sunrise 0.0504 is 5.8.5. Therefore, I guess DT::E::Sunrise 0.0505 and next will work in 5.8.5 too.
+    MIN_PERL_VERSION => '5.8.5',
     'BUILD_REQUIRES'    => { 'Test::More'         => '0',   # should be 'TEST_REQUIRES', except that ExtUtils::MakeMaker 6.5705 does not accept it
                              'DateTime::Duration' => '0',
                              'DateTime::Span'     => '0',
                              'DateTime::SpanSet'  => '0',
                              'Test::Exception'    => '0',
+                             'ExtUtils::MakeMaker' => '6.57_02', # the first version to accept several authors in an arrayref
                            },
+    META_MERGE       => {
+       prereqs => {
+         runtime => {
+           requires => {
+               'DateTime'           => '0.16',
+               'DateTime::Duration' => '0',
+               'DateTime::Span'     => '0',
+               'DateTime::SpanSet'  => '0',
+               'perl'               => '5.8.5',
+           },
+         },
+         build => {
+           requires => {
+             'Test::More'          => '0',
+             'ExtUtils::MakeMaker' => '6.57_02', # the first version to accept several authors in an arrayref
+           },
+         },
+       },
+       provides       => {
+           'DateTime::Event::Sunrise' => {
+                file => 'lib/DateTime/Event/Sunrise.pm',
+                version => '0.0505',
+           },
+       },
+       'meta-spec' => { version => 2 },
+       resources => {
+           repository => {
+               type => 'git',
+               url  => 'https://github.com/jforget/DateTime-Event-Sunrise.git',
+               web  => 'https://github.com/jforget/DateTime-Event-Sunrise',
+           },
+       },
+    },
 );
