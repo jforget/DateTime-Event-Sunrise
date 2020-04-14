@@ -1366,7 +1366,7 @@ for his excellent web page on the subject.
 
 for suggestions.
 
-=item People at L<http://geocoder.opencagedata.com/>
+=item People at L<https://geocoder.opencagedata.com/>
 
 for noticing an endless loop condition in L<Astro::Sunrise> and for fixing it.
 
@@ -1380,8 +1380,8 @@ This program is distributed under the same terms as Perl 5.16.3:
 GNU Public License version 1 or later and Perl Artistic License
 
 You can find the text of the licenses in the F<LICENSE> file or at
-L<http://www.perlfoundation.org/artistic_license_1_0>
-and L<http://www.gnu.org/licenses/gpl-1.0.html>.
+L<https://dev.perl.org/licenses/artistic.html>
+and L<https://www.gnu.org/licenses/gpl-1.0.html>.
 
 Here is the summary of GPL:
 
@@ -1397,7 +1397,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation,
-Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+Inc., <https://www.fsf.org/>.
 
 =head2 Original C program
 
@@ -1444,7 +1444,7 @@ Astro::Sunrise
 
 DateTime::Event::Jewish::Sunrise
 
-Paul Schlyter's homepage at http://stjarnhimlen.se/english.html
+Paul Schlyter's homepage at https://stjarnhimlen.se/english.html
 
 =cut
 
