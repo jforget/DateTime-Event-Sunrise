@@ -36,15 +36,15 @@ Revision history for Perl extension DateTime::Event::Sunrise.
 0.05    Fri Jan 9 2004
        - Added sunrise_sunset_span method. This will return rise/set time
          for one day (as a span object). Request # 4785 on rt.cpan.org
-	 Added sunrise_datetime, sunset_datetime method.
+         Added sunrise_datetime, sunset_datetime method.
 
 0.0402  Tues, Nov 25 2003
        - Changed the convert_hour to convert to seconds (as a duration)
          Then add the duration to the day. This will provide seconds for
-	 the DateTime Object. 
+         the DateTime Object. 
        - Added many tests (Cities around the world). I have verified the
          entries in the data section of the tests within +- 2 min. using
-	 the information from the Naval Observatory (aa.usno.navy.mil).
+         the information from the Naval Observatory (aa.usno.navy.mil).
 
 0.0401  Thurs Oct 8 2003
        - changed the _sunrise sub to include the timezone information
@@ -65,5 +65,5 @@ Revision history for Perl extension DateTime::Event::Sunrise.
         - gets methods from DateTime::Set
 
 0.01   Mon Mar 21 10:01:50 2003
-	- original version; created by Ron Hill
+        - original version; created by Ron Hill
 

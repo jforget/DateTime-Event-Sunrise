@@ -1173,16 +1173,16 @@ See DateTime::Set.
   print $day_set->contains( $dt ) ? 'day' : 'night';
 
   my $dt = DateTime->new( year   => 2000,
-		   month  => 6,
-		   day    => 20,
-		   time_zone => 'America/Los_Angeles',
-		    );
+                   month  => 6,
+                   day    => 20,
+                   time_zone => 'America/Los_Angeles',
+                    );
 
   my $sunrise = DateTime::Event::Sunrise ->new(
-		       longitude =>'-118' ,
-		       latitude  => '33',
-		       altitude  => '-0.833',
-		       precise   => '1'
+                       longitude =>'-118' ,
+                       latitude  => '33',
+                       altitude  => '-0.833',
+                       precise   => '1'
 
   );
 
