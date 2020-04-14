@@ -52,6 +52,7 @@ sub new {
           precise    => { type => SCALAR, default => '0' },
           upper_limb => { type => SCALAR, default => '0' },
           silent     => { type => SCALAR, default => '0' },
+          trace      => { type => GLOB | GLOBREF | SCALAR, default => '0' },
       }
     );
 
@@ -497,6 +498,7 @@ sub _sunrise {
     my $cloned_dt = $dt->clone;
     my $altit     = $self->{altitude};
     my $precise   = defined( $self->{precise} ) ? $self->{precise} : 0;
+    my $trace     = defined( $self->{trace}   ) ? $self->{trace}   : 0;
     unless (defined $silent) {
       $silent    = defined( $self->{silent}  ) ? $self->{silent}  : 0;
     }
@@ -504,11 +506,14 @@ sub _sunrise {
 
     if ($precise) {
 
+        if ($trace) {
+          printf $trace "Precise computation for %s, lon %f, lat %f, altitude %f\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude};
+        }
         # This is the initial start
 
         my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
         my ($tmp_rise_1, $tmp_set_1, $rise_season) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit,
-                                                                     15.04107, $self->{upper_limb}, $silent);
+                                                                     15.04107, $self->{upper_limb}, $silent, $trace);
         my $set_season = $rise_season;
 
         # Now we have the initial rise/set times next recompute d using the exact moment
@@ -522,11 +527,11 @@ sub _sunrise {
 
             my $d_sunrise_1 = $d + $tmp_rise_1 / 24.0;
             ($tmp_rise_2, undef, undef) = _sunrise_sunset($d_sunrise_1, $self->{longitude}, $self->{latitude},
-                                                          $altit, 15.04107, $self->{upper_limb}, $silent);
+                                                          $altit, 15.04107, $self->{upper_limb}, $silent, $trace);
             $tmp_rise_1 = $tmp_rise_3;
             my $d_sunrise_2 = $d + $tmp_rise_2 / 24.0;
             ($tmp_rise_3, undef, $rise_season) = _sunrise_sunset($d_sunrise_2, $self->{longitude}, $self->{latitude},
-                                                                 $altit, 15.04107, $self->{upper_limb}, $silent);
+                                                                 $altit, 15.04107, $self->{upper_limb}, $silent, $trace);
             last if ++$counter > 10;
         }
 
@@ -538,11 +543,11 @@ sub _sunrise {
 
             my $d_sunset_1 = $d + $tmp_set_1 / 24.0;
             (undef, $tmp_set_2, undef) = _sunrise_sunset( $d_sunset_1, $self->{longitude}, $self->{latitude},
-                                                          $altit, 15.04107, $self->{upper_limb}, $silent);
+                                                          $altit, 15.04107, $self->{upper_limb}, $silent, $trace);
             $tmp_set_1 = $tmp_set_3;
             my $d_sunset_2 = $d + $tmp_set_2 / 24.0;
             (undef, $tmp_set_3, $set_season) = _sunrise_sunset( $d_sunset_2, $self->{longitude}, $self->{latitude},
-                                                                $altit, 15.04107, $self->{upper_limb}, $silent);
+                                                                $altit, 15.04107, $self->{upper_limb}, $silent, $trace);
             last if ++$counter > 10;
 
         }
@@ -572,7 +577,7 @@ sub _sunrise {
     }
     else {
         my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
-        my ( $h1, $h2, $season ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb}, $silent);
+        my ( $h1, $h2, $season ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb}, $silent, $trace);
         my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
         my $rise_dur = DateTime::Duration->new( seconds => $seconds_rise );
         my $set_dur  = DateTime::Duration->new( seconds => $seconds_set );
@@ -613,7 +618,7 @@ sub _sunrise {
     #
 sub _sunrise_sunset {
 
-    my ( $d, $lon, $lat, $altit, $h, $upper_limb, $silent ) = @_;
+    my ( $d, $lon, $lat, $altit, $h, $upper_limb, $silent, $trace ) = @_;
 
     # Compute local sidereal time of this moment
     my $sidtime = revolution(GMST0($d) + 180.0 + $lon);
@@ -1086,6 +1091,19 @@ your F<STDERR> stream.
 
 Default value is 0, for backward compatibility.
 
+=item trace
+
+This parameter should  either be a false value or  a filehandle opened
+for output.  In the  latter case,  a few messages  are printed  to the
+filehandle, which  allows the programmer to  see step by step  how the
+sunrise and the sunset are computed.
+
+Used for  analysis and debugging purposes.  You need to read  the text
+F<doc/astronomical-notes.pod> in  the sister  module L<Astro::Sunrise>
+to understand what the traced values represent.
+
+Default value is C<0>, which does not produce trace messages.
+
 =back
 
 =head2 sunrise, sunset
@@ -1434,7 +1452,7 @@ THE SOFTWARE.
 
 perl(1).
 
-DateTime Web page at http://datetime.perl.org/
+DateTime Web page at L<http://datetime.perl.org/>
 
 DateTime::Set
 
@@ -1444,7 +1462,7 @@ Astro::Sunrise
 
 DateTime::Event::Jewish::Sunrise
 
-Paul Schlyter's homepage at https://stjarnhimlen.se/english.html
+Paul Schlyter's homepage at L<https://stjarnhimlen.se/english.html>
 
 =cut
 
