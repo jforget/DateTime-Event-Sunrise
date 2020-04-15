@@ -639,9 +639,8 @@ sub _sunrise_sunset {
     my $sradius = 0.2666 / $sr;
 
     if ($trace) {
-      my $datetime = DateTime->from_epoch(epoch => $d)->datetime;
-      printf $trace "For day %s (%s), sidereal time $sidtime, right asc $sRA\n", $datetime, _fmt_hr(24 * ($d - int($d)), $lon);
-      printf $trace "For day %s (%s), solar noon at $tsouth (%s)\n", $datetime, _fmt_hr(24 * ($d - int($d)), $lon), _fmt_hr($tsouth, $lon);
+      printf $trace "For day $d (%s), sidereal time $sidtime, right asc $sRA\n", _fmt_hr(24 * ($d - int($d)), $lon);
+      printf $trace "For day $d (%s), solar noon at $tsouth (%s)\n", _fmt_hr(24 * ($d - int($d)), $lon), _fmt_hr($tsouth, $lon);
     }
     # Do correction to upper limb, if necessary
     if ($upper_limb) {
@@ -683,10 +682,9 @@ sub _sunrise_sunset {
     my $hour_rise_ut = $tsouth - $t;
     my $hour_set_ut  = $tsouth + $t;
     if ($trace) {
-      my $datetime = DateTime->from_epoch(epoch => $d)->datetime;
-      printf $trace "For day %s (%s), sunrise at $hour_rise_ut (%s)\n", $datetime, _fmt_hr(24 * ($d - int($d)), $lon),
+      printf $trace "For day $d (%s), sunrise at $hour_rise_ut (%s)\n", _fmt_hr(24 * ($d - int($d)), $lon),
                    _fmt_hr($hour_rise_ut, $lon);
-      printf $trace "For day %s (%s), sunset  at $hour_set_ut (%s)\n",  $datetime, _fmt_hr(24 * ($d - int($d)), $lon),
+      printf $trace "For day $d (%s), sunset  at $hour_set_ut (%s)\n",  _fmt_hr(24 * ($d - int($d)), $lon),
                    _fmt_hr($hour_set_ut , $lon);
     }
     return ( $hour_rise_ut, $hour_set_ut, $season );
@@ -802,8 +800,8 @@ sub sun_RA_dec {
     # Compute Sun's ecliptical coordinates 
     my ( $r, $lon ) = sunpos($d);
     if ($trace) {
-      my $datetime = DateTime->from_epoch(epoch => $d)->datetime;
-      printf $trace "For day %s (%s), solar noon at ecliptic longitude $lon\n", $datetime, _fmt_hr(24 * ($d - int($d)), $lon_noon),;
+      #my $datetime = DateTime->new(year => 1999, month => 12, day => 31)->add(days => $d)->ymd;
+      printf $trace "For day $d (%s), solar noon at ecliptic longitude $lon\n", _fmt_hr(24 * ($d - int($d)), $lon_noon),;
     }
 
     # Compute ecliptic rectangular coordinates (z=0) 
