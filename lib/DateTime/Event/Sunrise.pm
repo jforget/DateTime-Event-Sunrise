@@ -507,7 +507,7 @@ sub _sunrise {
     if ($precise) {
 
         if ($trace) {
-          printf $trace "Precise computation for %s, lon %f, lat %f, altitude %f\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude};
+          printf $trace "Precise sunrise computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
         }
         # This is the initial start
 
@@ -535,6 +535,9 @@ sub _sunrise {
             last if ++$counter > 10;
         }
 
+        if ($trace) {
+          printf $trace "Precise sunset computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
+        }
         my $tmp_set_2 = 9;
         my $tmp_set_3 = 0;
 
@@ -576,6 +579,9 @@ sub _sunrise {
         return ( $rise_time, $set_time, $rise_season, $set_season );
     }
     else {
+        if ($trace) {
+          printf $trace "Basic computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
+        }
         my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
         my ( $h1, $h2, $season ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb}, $silent, $trace);
         my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
@@ -624,7 +630,7 @@ sub _sunrise_sunset {
     my $sidtime = revolution(GMST0($d) + 180.0 + $lon);
 
     # Compute Sun's RA + Decl + distance at this moment
-    my ($sRA, $sdec, $sr) = sun_RA_dec($d);
+    my ($sRA, $sdec, $sr) = sun_RA_dec($d, $lon, $trace);
 
     # Compute time when Sun is at south - in hours UT
     my $tsouth  = 12.0 - rev180( $sidtime - $sRA ) / $h;
@@ -632,6 +638,11 @@ sub _sunrise_sunset {
     # Compute the Sun's apparent radius, degrees
     my $sradius = 0.2666 / $sr;
 
+    if ($trace) {
+      my $datetime = DateTime->from_epoch(epoch => $d)->datetime;
+      printf $trace "For day %s (%s), sidereal time $sidtime, right asc $sRA\n", $datetime, _fmt_hr(24 * ($d - int($d)), $lon);
+      printf $trace "For day %s (%s), solar noon at $tsouth (%s)\n", $datetime, _fmt_hr(24 * ($d - int($d)), $lon), _fmt_hr($tsouth, $lon);
+    }
     # Do correction to upper limb, if necessary
     if ($upper_limb) {
         $altit -= $sradius;
@@ -660,13 +671,24 @@ sub _sunrise_sunset {
         $season = +1;
     }
     else {
-        $t = acosd($cost) / 15.0;    # The diurnal arc, hours
+      my $arc = acosd($cost);    # The diurnal arc
+      $t = $arc / $h;            # Time to traverse the diurnal arc, hours
+      if ($trace) {
+        printf $trace "Diurnal arc $arc -> $t hours (%s)\n", _fmt_dur($t);
+      }
     }
 
     # Store rise and set times - in hours UT 
 
     my $hour_rise_ut = $tsouth - $t;
     my $hour_set_ut  = $tsouth + $t;
+    if ($trace) {
+      my $datetime = DateTime->from_epoch(epoch => $d)->datetime;
+      printf $trace "For day %s (%s), sunrise at $hour_rise_ut (%s)\n", $datetime, _fmt_hr(24 * ($d - int($d)), $lon),
+                   _fmt_hr($hour_rise_ut, $lon);
+      printf $trace "For day %s (%s), sunset  at $hour_set_ut (%s)\n",  $datetime, _fmt_hr(24 * ($d - int($d)), $lon),
+                   _fmt_hr($hour_set_ut , $lon);
+    }
     return ( $hour_rise_ut, $hour_set_ut, $season );
 
 }
@@ -775,10 +797,14 @@ sub sunpos {
     #
 sub sun_RA_dec {
 
-    my ($d) = @_;
+    my ($d, $lon_noon, $trace) = @_;
 
     # Compute Sun's ecliptical coordinates 
     my ( $r, $lon ) = sunpos($d);
+    if ($trace) {
+      my $datetime = DateTime->from_epoch(epoch => $d)->datetime;
+      printf $trace "For day %s (%s), solar noon at ecliptic longitude $lon\n", $datetime, _fmt_hr(24 * ($d - int($d)), $lon_noon),;
+    }
 
     # Compute ecliptic rectangular coordinates (z=0) 
     my $x = $r * cosd($lon);
@@ -945,6 +971,38 @@ sub convert_hour {
     my $seconds_set  = floor( $hour_set_ut * 60 * 60 );
 
     return ( $seconds_rise, $seconds_set );
+}
+
+sub _fmt_hr {
+  my ($utc, $lon) = @_;
+  my $lmt = $utc + $lon / 15;
+  my $hr_utc = floor($utc);
+  $utc      -= $hr_utc;
+  $utc      *= 60;
+  my $mn_utc = floor($utc);
+  $utc      -= $mn_utc;
+  $utc      *= 60;
+  my $sc_utc = floor($utc);
+  my $hr_lmt = floor($lmt);
+  $lmt      -= $hr_lmt;
+  $lmt      *= 60;
+  my $mn_lmt = floor($lmt);
+  $lmt      -= $mn_lmt;
+  $lmt      *= 60;
+  my $sc_lmt = floor($lmt);
+  return sprintf("%02d:%02d:%02d UTC %02d:%02d:%02d LMT", $hr_utc, $mn_utc, $sc_utc, $hr_lmt, $mn_lmt, $sc_lmt);
+}
+
+sub _fmt_dur {
+  my ($dur) = @_;
+  my $hr = floor($dur);
+  $dur  -= $hr;
+  $dur  *= 60;
+  my $mn = floor($dur);
+  $dur  -= $mn;
+  $dur  *= 60;
+  my $sc = floor($dur);
+  return sprintf("%02d h %02d mn %02d s", $hr, $mn, $sc);
 }
 
 1962; # Hint: sung by RZ, better known as BD
