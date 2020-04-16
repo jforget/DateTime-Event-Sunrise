@@ -974,21 +974,17 @@ sub convert_hour {
 sub _fmt_hr {
   my ($utc, $lon) = @_;
   my $lmt = $utc + $lon / 15;
-  my $hr_utc = floor($utc);
-  $utc      -= $hr_utc;
-  $utc      *= 60;
-  my $mn_utc = floor($utc);
-  $utc      -= $mn_utc;
-  $utc      *= 60;
-  my $sc_utc = floor($utc);
-  my $hr_lmt = floor($lmt);
-  $lmt      -= $hr_lmt;
-  $lmt      *= 60;
-  my $mn_lmt = floor($lmt);
-  $lmt      -= $mn_lmt;
-  $lmt      *= 60;
-  my $sc_lmt = floor($lmt);
-  return sprintf("%02d:%02d:%02d UTC %02d:%02d:%02d LMT", $hr_utc, $mn_utc, $sc_utc, $hr_lmt, $mn_lmt, $sc_lmt);
+  my $hr_h_utc = $utc;         my $hr_h_lmt = $lmt;     
+  my $hr_d_utc = $utc / 24;    my $hr_d_lmt = $lmt / 24;
+  my $hr_utc   = floor($utc);  my $hr_lmt   = floor($lmt); 
+  $utc        -= $hr_utc;      $lmt        -= $hr_lmt;    
+  $utc        *= 60;           $lmt        *= 60;         
+  my $mn_utc   = floor($utc);  my $mn_lmt   = floor($lmt);
+  $utc        -= $mn_utc;      $lmt        -= $mn_lmt;    
+  $utc        *= 60;           $lmt        *= 60;         
+  my $sc_utc   = floor($utc);  my $sc_lmt   = floor($lmt);
+  return sprintf("%02d:%02d:%02d %f h %f d UTC %02d:%02d:%02d %f h %f d LMT", $hr_utc, $mn_utc, $sc_utc, $hr_h_utc, $hr_d_utc
+                                                                            , $hr_lmt, $mn_lmt, $sc_lmt, $hr_h_lmt, $hr_d_lmt);
 }
 
 sub _fmt_dur {
