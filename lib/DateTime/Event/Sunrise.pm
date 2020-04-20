@@ -156,7 +156,7 @@ sub sunset_datetime {
     if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
-    my ( undef, $tmp_set ) = _sunrise( $self, $dt );
+    my ( undef, $tmp_set ) = _sunrise( $self, $dt, 0, 1 );
     return $tmp_set;
 }
 
@@ -188,7 +188,7 @@ sub sunrise_datetime {
     if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
-    my ( $tmp_rise, undef ) = _sunrise( $self, $dt );
+    my ( $tmp_rise, undef ) = _sunrise( $self, $dt, 1, 0 );
     return $tmp_rise;
 }
 
@@ -220,7 +220,7 @@ sub sunrise_sunset_span {
     if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
-    my ( $tmp_rise, $tmp_set ) = _sunrise( $self, $dt );
+    my ( $tmp_rise, $tmp_set ) = _sunrise( $self, $dt, 1, 1 );
 
     return DateTime::Span->from_datetimes(
       start => $tmp_rise,
@@ -254,7 +254,7 @@ sub is_polar_night {
     if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
-    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt, 1 );
+    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt, 1, 1, 1 );
     return ($rise_season < 0 || $set_season < 0);
 }
 
@@ -284,7 +284,7 @@ sub is_polar_day {
     if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
-    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt, 1 );
+    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt, 1, 1, 1 );
     return ($rise_season > 0 || $set_season > 0);
 }
 
@@ -314,7 +314,7 @@ sub is_day_and_night {
     if ( ! $dt->isa('DateTime') ) {
         croak("Dates need to be DateTime objects");
     }
-    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt, 1 );
+    my ( undef, undef, $rise_season, $set_season ) = _sunrise( $self, $dt, 1, 1, 1 );
     return ($rise_season == 0 && $set_season == 0);
 }
 
@@ -343,16 +343,16 @@ sub _following_sunrise {
     my $dt   = shift;
     croak( "Dates need to be DateTime objects (" . ref($dt) . ")" )
       unless ( $dt->isa('DateTime') );
-    my ( $tmp_rise, undef ) = _sunrise( $self, $dt );
+    my ( $tmp_rise, undef ) = _sunrise( $self, $dt, 1, 0 );
     return $tmp_rise if $tmp_rise > $dt;
     my $d = DateTime::Duration->new(
       days => 1,
     );
     my $new_dt = $dt + $d;
-    ( $tmp_rise, undef ) = _sunrise( $self, $new_dt );
+    ( $tmp_rise, undef ) = _sunrise( $self, $new_dt, 1, 0 );
     return $tmp_rise if $tmp_rise > $dt;
     $new_dt = $new_dt + $d;
-    ( $tmp_rise, undef ) = _sunrise( $self, $new_dt );
+    ( $tmp_rise, undef ) = _sunrise( $self, $new_dt, 1, 0 );
     return $tmp_rise;
 }
 
@@ -380,16 +380,16 @@ sub _previous_sunrise {
     my $dt   = shift;
     croak( "Dates need to be DateTime objects (" . ref($dt) . ")" )
       unless ( $dt->isa('DateTime') );
-    my ( $tmp_rise, undef ) = _sunrise( $self, $dt );
+    my ( $tmp_rise, undef ) = _sunrise( $self, $dt, 1, 0 );
     return $tmp_rise if $tmp_rise < $dt;
     my $d = DateTime::Duration->new(
       days => 1,
     );
     my $new_dt = $dt - $d;
-    ( $tmp_rise, undef ) = _sunrise( $self, $new_dt );
+    ( $tmp_rise, undef ) = _sunrise( $self, $new_dt, 1, 0 );
     return $tmp_rise if $tmp_rise < $dt;
     $new_dt = $new_dt - $d;
-    ( $tmp_rise, undef ) = _sunrise( $self, $new_dt );
+    ( $tmp_rise, undef ) = _sunrise( $self, $new_dt, 1, 0 );
     return $tmp_rise;
 }
 
@@ -417,16 +417,16 @@ sub _following_sunset {
     my $dt   = shift;
     croak( "Dates need to be DateTime objects (" . ref($dt) . ")" )
       unless ( ref($dt) eq 'DateTime' );
-    my ( undef, $tmp_set ) = _sunrise( $self, $dt );
+    my ( undef, $tmp_set ) = _sunrise( $self, $dt, 0, 1 );
     return $tmp_set if $tmp_set > $dt;
     my $d = DateTime::Duration->new(
       days => 1,
     );
     my $new_dt = $dt + $d;
-    ( undef, $tmp_set ) = _sunrise( $self, $new_dt );
+    ( undef, $tmp_set ) = _sunrise( $self, $new_dt, 0, 1 );
     return $tmp_set if $tmp_set > $dt;
     $new_dt = $new_dt + $d;
-    ( undef, $tmp_set ) = _sunrise( $self, $new_dt );
+    ( undef, $tmp_set ) = _sunrise( $self, $new_dt, 0, 1 );
     return $tmp_set;
 }
 
@@ -454,46 +454,55 @@ sub _previous_sunset {
     my $dt   = shift;
     croak( "Dates need to be DateTime objects (" . ref($dt) . ")" )
       unless ( $dt->isa('DateTime') );
-    my ( undef, $tmp_set ) = _sunrise( $self, $dt );
+    my ( undef, $tmp_set ) = _sunrise( $self, $dt, 0, 1 );
     return $tmp_set if $tmp_set < $dt;
     my $d = DateTime::Duration->new(
       days => 1,
     );
     my $new_dt = $dt - $d;
-    ( undef, $tmp_set ) = _sunrise( $self, $new_dt );
+    ( undef, $tmp_set ) = _sunrise( $self, $new_dt, 0, 1 );
     return $tmp_set if $tmp_set < $dt;
     $new_dt = $new_dt - $d;
-    ( undef, $tmp_set ) = _sunrise( $self, $new_dt );
+    ( undef, $tmp_set ) = _sunrise( $self, $new_dt, 0, 1 );
     return $tmp_set;
 }
 
-    #
-    #
-    # FUNCTIONAL SEQUENCE for _sunrise
-    #
-    # _GIVEN
-    #  A sunrise object and a DateTime object
-    #
-    # _THEN
-    #
-    # Check if precise is set to one if so
-    # initially compute sunrise/sunset (using division
-    # by 15.04107 instead of 15.0) then recompute rise/set time
-    # using exact moment last computed. IF precise is set
-    # to zero devide by 15.0 (only once)
-    #
-    # Bug in this sub, I was blindly setting the hour and min without
-    # checking if it was neg. a neg. value for hours/min is not correct
-    # I changed the routine to use a duration then add the duration.
-    #
-    # _RETURN
-    #
-    # two DateTime objects with the date and time for sunrise and sunset
-    # two season flags for sunrise and sunset respectively
-    #
+#
+#
+# FUNCTIONAL SEQUENCE for _sunrise
+#
+# _GIVEN
+#  A sunrise object and a DateTime object
+#  three booleans, to control the iterative computations and the warning messages
+#
+# _THEN
+#
+# Check if precise is set to one if so
+# initially compute sunrise/sunset (using division
+# by 15.04107 instead of 15.0) then recompute rise/set time
+# using exact moment last computed. IF precise is set
+# to zero devide by 15.0 (only once)
+#
+# If using the precise algorithm, the $want_sunrise and $want_unset booleans control the computation
+# of the corresponding events, to eliminate computations that will be discarded upon return
+# from the sub (that is, "stored" into undef).
+# These booleans are not used for the basic algorithm.
+#
+# The $silent boolean, if provided, override the silent attribute of the sunrise object
+# to control the emission of warnings.
+#
+# Bug in this sub, I was blindly setting the hour and min without
+# checking if it was neg. a neg. value for hours/min is not correct
+# I changed the routine to use a duration then add the duration.
+#
+# _RETURN
+#
+# two DateTime objects with the date and time for sunrise and sunset
+# two season flags for sunrise and sunset respectively
+#
 sub _sunrise {
 
-    my ($self, $dt, $silent) = @_;
+    my ($self, $dt, $want_sunrise, $want_sunset, $silent) = @_;
     my $cloned_dt = $dt->clone;
     my $altit     = $self->{altitude};
     my $precise   = defined( $self->{precise} ) ? $self->{precise} : 0;
@@ -505,17 +514,22 @@ sub _sunrise {
 
     if ($precise) {
 
-        my $d = days_since_2000_Jan_0($cloned_dt) - $self->{longitude} / 360.0; # UTC decimal days at midnight LMT
-        my $tmp_dt1 = DateTime->new(
-          year      => $dt->year,
-          month     => $dt->month,
-          day       => $dt->day,
-          hour      => 0,
-          minute    => 0,
-          time_zone => 'UTC'
-        );
-        my $tz = $dt->time_zone;
+      my $d = days_since_2000_Jan_0($cloned_dt) - $self->{longitude} / 360.0; # UTC decimal days at midnight LMT
+      my $tmp_dt1 = DateTime->new(
+        year      => $dt->year,
+        month     => $dt->month,
+        day       => $dt->day,
+        hour      => 0,
+        minute    => 0,
+        time_zone => 'UTC'
+      );
+      my $tz = $dt->time_zone;
+      my $rise_time;
+      my $set_time;
+      my $rise_season;
+      my $set_season;
 
+      if ($want_sunrise) {
         if ($trace) {
           printf $trace "Precise sunrise computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
         }
@@ -523,7 +537,6 @@ sub _sunrise {
 
         my $h1_lmt = 12; # LMT decimal hours, noon then the successive values of sunrise
         my $h1_utc;      # UTC decimal hours, noon LMT then the successive values of sunrise
-        my $rise_season;
         for my $counter (1..9) {
           # 9 is a arbitrary value to stop runaway loops. Normally, we should leave at the second or third iteration
           my $h2_utc;
@@ -546,15 +559,16 @@ sub _sunrise {
         # This is to fix the datetime object to use a duration
         # instead of blindly setting the hour/min
         my $rise_dur  = DateTime::Duration->new( seconds => $second_rise );
-        my $rise_time = $tmp_dt1 + $rise_dur;
+        $rise_time = $tmp_dt1 + $rise_dur;
         $rise_time->set_time_zone($tz) unless $tz->is_floating;
+      }
 
+      if ($want_sunset) {
         if ($trace) {
           printf $trace "Precise sunset computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
         }
         my $h3_lmt = 12; # LMT decimal hours, noon then the successive values of sunset
         my $h3_utc;      # UTC decimal hours, noon LMT then the successive values of sunset
-        my $set_season;
         for my $counter (1..9) {
           # 9 is a arbitrary value to stop runaway loops. Normally, we should leave at the second or third iteration
           my $h4_utc;
@@ -578,10 +592,11 @@ sub _sunrise {
         # This is to fix the datetime object to use a duration
         # instead of blindly setting the hour/min
         my $set_dur   = DateTime::Duration->new( seconds => $second_set );
-        my $set_time  = $tmp_dt1 + $set_dur;
+        $set_time  = $tmp_dt1 + $set_dur;
         $set_time ->set_time_zone($tz) unless $tz->is_floating;
+      }
 
-        return ( $rise_time, $set_time, $rise_season, $set_season );
+      return ( $rise_time, $set_time, $rise_season, $set_season );
     }
     else {
         if ($trace) {
