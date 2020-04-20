@@ -505,12 +505,22 @@ sub _sunrise {
 
     if ($precise) {
 
+        my $d = days_since_2000_Jan_0($cloned_dt) - $self->{longitude} / 360.0; # UTC decimal days at midnight LMT
+        my $tmp_dt1 = DateTime->new(
+          year      => $dt->year,
+          month     => $dt->month,
+          day       => $dt->day,
+          hour      => 0,
+          minute    => 0,
+          time_zone => 'UTC'
+        );
+        my $tz = $dt->time_zone;
+
         if ($trace) {
           printf $trace "Precise sunrise computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
         }
         # This is the initial start
 
-        my $d = days_since_2000_Jan_0($cloned_dt) - $self->{longitude} / 360.0; # UTC decimal days at midnight LMT
         my $h1_lmt = 12; # LMT decimal hours, noon then the successive values of sunrise
         my $h1_utc;      # UTC decimal hours, noon LMT then the successive values of sunrise
         my $rise_season;
@@ -532,6 +542,12 @@ sub _sunrise {
           $h1_utc = $h2_utc;
           $h1_lmt = $h1_utc + $self->{longitude} / 15;
         }
+        my $second_rise = _convert_1_hour($h1_utc);
+        # This is to fix the datetime object to use a duration
+        # instead of blindly setting the hour/min
+        my $rise_dur  = DateTime::Duration->new( seconds => $second_rise );
+        my $rise_time = $tmp_dt1 + $rise_dur;
+        $rise_time->set_time_zone($tz) unless $tz->is_floating;
 
         if ($trace) {
           printf $trace "Precise sunset computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
@@ -558,27 +574,13 @@ sub _sunrise {
           $h3_lmt = $h3_utc + $self->{longitude} / 15;
         }
 
-        my ( $second_rise, $second_set ) = convert_hour( $h1_utc, $h3_utc );
-
+        my $second_set = _convert_1_hour( $h3_utc );
         # This is to fix the datetime object to use a duration
         # instead of blindly setting the hour/min
-        my $rise_dur = DateTime::Duration->new( seconds => $second_rise );
-        my $set_dur  = DateTime::Duration->new( seconds => $second_set );
-
-        my $tmp_dt1 = DateTime->new(
-          year      => $dt->year,
-          month     => $dt->month,
-          day       => $dt->day,
-          hour      => 0,
-          minute    => 0,
-          time_zone => 'UTC'
-        );
-
-        my $rise_time = $tmp_dt1 + $rise_dur;
+        my $set_dur   = DateTime::Duration->new( seconds => $second_set );
         my $set_time  = $tmp_dt1 + $set_dur;
-        my $tz        = $dt->time_zone;
-        $rise_time->set_time_zone($tz) unless $tz->is_floating;
-        $set_time->set_time_zone($tz) unless $tz->is_floating;
+        $set_time ->set_time_zone($tz) unless $tz->is_floating;
+
         return ( $rise_time, $set_time, $rise_season, $set_season );
     }
     else {
@@ -603,7 +605,7 @@ sub _sunrise {
         my $set_time  = $tmp_dt1 + $set_dur;
         my $tz        = $dt->time_zone;
         $rise_time->set_time_zone($tz) unless $tz->is_floating;
-        $set_time->set_time_zone($tz) unless $tz->is_floating;
+        $set_time ->set_time_zone($tz) unless $tz->is_floating;
         return ( $rise_time, $set_time, $season, $season );
     }
 
@@ -972,6 +974,30 @@ sub convert_hour {
     my $seconds_set  = floor( $hour_set_ut * 60 * 60 );
 
     return ( $seconds_rise, $seconds_set );
+}
+#
+#
+# FUNCTIONAL SEQUENCE for _convert_1_hour
+#
+# _GIVEN
+# A UT time in hours
+#
+# _THEN
+#
+# split out the hours and minutes
+# Oct 20 2003
+# will convert hours to seconds and return this
+# let DateTime handle the conversion
+#
+# _RETURN
+#
+# number of seconds
+sub _convert_1_hour {
+
+    my ( $hour ) = @_;
+    my $seconds = floor( $hour * 3600 );
+
+    return $seconds;
 }
 
 sub _fmt_hr {
