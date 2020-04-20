@@ -31,10 +31,11 @@ use Test::More;
 use DateTime;
 use DateTime::Event::Sunrise;
 
+# Values for Paris (2°20'E, 48°50' N) computed with Stellarium
 my @tests = split "\n", <<'TEST';
-2.33  48.83 1 20 18:04:42
-2.33  48.83 1 21 18:06:12
-2.33  48.83 1 22 18:07:43
+2.33  48.83 1 20 18:03:53
+2.33  48.83 1 21 18:05:23
+2.33  48.83 1 22 18:06:54
 92.33 48.83 0 20 12:03:10
 92.33 48.83 0 21 12:04:41
 92.33 48.83 0 22 12:06:11
@@ -50,8 +51,12 @@ foreach (@tests) {
                                                  upper_limb => 0,
                                                 );
   my  $day =  DateTime->new(year => 2008, month => 3, day => $dd, time_zone => 'UTC');
+  my  $set = $sunset->next($day);
+  # fuzz factor ± 1 mn
+  my  $sunset_lo = $set->clone->subtract(minutes => 1)->strftime("%H:%M:%S");
+  my  $sunset_hi = $set->clone->add     (minutes => 1)->strftime("%H:%M:%S");
 
-  is ($sunset->next($day)->strftime("%H:%M:%S"), $res);
+  ok ($sunset_lo le $res && $sunset_hi ge $res);
 
 }
 
