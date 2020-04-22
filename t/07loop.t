@@ -46,24 +46,30 @@ my $dt2 = DateTime->new( year   => 2015,
                          day    =>   27,
                           );
 
-my $sunrise = DateTime::Event::Sunrise ->sunrise(
+my $sunrise = DateTime::Event::Sunrise ->new(
                      longitude  =>'177',
                      latitude   => '-37.66667',
                      altitude   => 6,
                      precise    => 1,
 );
-my $sunset = DateTime::Event::Sunrise ->sunset(
+my $sunset = DateTime::Event::Sunrise ->new(
                      longitude  =>'177',
                      latitude   => '-37.66667',
                      altitude   => 6,
                      precise    => 1,
                      );
 
-my $tmp_rise = $sunrise->current($dt2);
-my $tmp_set  = $sunset->current($dt);
+my $tmp_rise = $sunrise->sunrise_datetime($dt2);
+my $tmp_set  = $sunset->sunset_datetime($dt);
 
-# I have cheated: these values are those that the module produces on my computer. The test succeeds
-# on my computer, I hope it will succeed on your computer.
-is ($tmp_rise->datetime, '2015-11-26T17:22:50', 'current sunrise');
-is ($tmp_set ->datetime, '2015-11-27T06:32:17', 'current sunset');
+my $res = '2015-11-26T17:23:47'; # computed with Stellarium
 
+my  $sunrise_lo = $tmp_rise->clone->subtract(minutes => $fudge)->datetime;
+my  $sunrise_hi = $tmp_rise->clone->add     (minutes => $fudge)->datetime;
+ok ($sunrise_lo le $res && $sunrise_hi ge $res);
+
+$res = '2015-11-27T06:35:20'; # computed with Stellarium
+
+my  $sunset_lo = $tmp_set->clone->subtract(minutes => $fudge)->datetime;
+my  $sunset_hi = $tmp_set->clone->add     (minutes => $fudge)->datetime;
+ok ($sunset_lo le $res && $sunset_hi ge $res);

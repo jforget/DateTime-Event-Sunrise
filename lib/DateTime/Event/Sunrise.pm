@@ -528,6 +528,7 @@ sub _sunrise {
       my $set_time;
       my $rise_season;
       my $set_season;
+      my $revsub = sub { _rev_lon($_[0], $self->{longitude}) }; # normalizing angles around the local longitude
 
       if ($want_sunrise) {
         if ($trace) {
@@ -541,7 +542,7 @@ sub _sunrise {
           # 9 is a arbitrary value to stop runaway loops. Normally, we should leave at the second or third iteration
           my $h2_utc;
           ($h2_utc, undef, $rise_season) = _sunrise_sunset( $d + $h1_lmt / 24, $self->{longitude}, $self->{latitude}, $altit,
-                                                                     15.04107, $self->{upper_limb}, $silent, $trace);
+                                                                     15.04107, $self->{upper_limb}, $silent, $trace, $revsub);
           if ($rise_season != 0) {
             $h1_utc = $h2_utc;
             last;
@@ -573,7 +574,7 @@ sub _sunrise {
           # 9 is a arbitrary value to stop runaway loops. Normally, we should leave at the second or third iteration
           my $h4_utc;
           (undef, $h4_utc, $set_season) = _sunrise_sunset( $d + $h3_lmt / 24, $self->{longitude}, $self->{latitude}, $altit,
-                                                                     15.04107, $self->{upper_limb}, $silent, $trace);
+                                                                     15.04107, $self->{upper_limb}, $silent, $trace, $revsub);
           if ($set_season != 0) {
             $h3_utc = $h4_utc;
             last;
@@ -603,7 +604,8 @@ sub _sunrise {
           printf $trace "Basic computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
         }
         my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
-        my ( $h1, $h2, $season ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb}, $silent, $trace);
+        my $revsub = \&rev180; # normalizing angles around 0 degrees
+        my ( $h1, $h2, $season ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb}, $silent, $trace, $revsub);
         my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
         my $rise_dur = DateTime::Duration->new( seconds => $seconds_rise );
         my $set_dur  = DateTime::Duration->new( seconds => $seconds_set );
@@ -644,7 +646,7 @@ sub _sunrise {
     #
 sub _sunrise_sunset {
 
-    my ( $d, $lon, $lat, $altit, $h, $upper_limb, $silent, $trace ) = @_;
+    my ( $d, $lon, $lat, $altit, $h, $upper_limb, $silent, $trace, $revsub ) = @_;
 
     # Compute local sidereal time of this moment
     my $sidtime = revolution(GMST0($d) + 180.0 + $lon);
@@ -653,7 +655,7 @@ sub _sunrise_sunset {
     my ($sRA, $sdec, $sr) = sun_RA_dec($d, $lon, $trace);
 
     # Compute time when Sun is at south - in hours UT
-    my $tsouth  = 12.0 - rev180( $sidtime - $sRA ) / $h;
+    my $tsouth  = 12.0 - $revsub->( $sidtime - $sRA ) / 15;
 
     # Compute the Sun's apparent radius, degrees
     my $sradius = 0.2666 / $sr;
@@ -916,23 +918,45 @@ sub revolution {
     return ( $x - 360.0 * floor( $x * $INV360 ) );
 }
 
-    #
-    #
-    # FUNCTIONAL SEQUENCE for rev180
-    #
-    # _GIVEN
-    #
-    # any angle in degrees
-    #
-    # _THEN
-    #
-    # Reduce input to within +180..+180 degrees
-    #
-    #
-    # _RETURN
-    #
-    # angle that was reduced
-    #
+#
+#
+# FUNCTIONAL SEQUENCE for _rev_lon
+#
+# _GIVEN
+#
+# two angles in degrees, the variable angle and the reference angle (longitude)
+#
+# _THEN
+#
+# Reduce input variable angle  to within reference-180 .. reference+180 degrees
+#
+#
+# _RETURN
+#
+# angle that was reduced
+#
+sub _rev_lon {
+    my ($x, $lon) = @_;
+    return $lon + rev180($x - $lon);
+}
+
+#
+#
+# FUNCTIONAL SEQUENCE for rev180
+#
+# _GIVEN
+#
+# any angle in degrees
+#
+# _THEN
+#
+# Reduce input to within -180..+180 degrees
+#
+#
+# _RETURN
+#
+# angle that was reduced
+#
 sub rev180 {
 
     my ($x) = @_;
