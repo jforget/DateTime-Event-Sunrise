@@ -649,7 +649,8 @@ sub _sunrise_sunset {
     my ( $d, $lon, $lat, $altit, $h, $upper_limb, $silent, $trace, $revsub ) = @_;
 
     # Compute local sidereal time of this moment
-    my $sidtime = revolution(GMST0($d) + 180.0 + $lon);
+    my $gmst0   = GMST0($d);
+    my $sidtime = revolution($gmst0 + 180.0 + $lon);
 
     # Compute Sun's RA + Decl + distance at this moment
     my ($sRA, $sdec, $sr) = sun_RA_dec($d, $lon, $trace);
@@ -661,8 +662,10 @@ sub _sunrise_sunset {
     my $sradius = 0.2666 / $sr;
 
     if ($trace) {
-      printf $trace "For day $d (%s), sidereal time $sidtime, right asc $sRA\n", _fmt_hr(24 * ($d - int($d)), $lon);
-      printf $trace "For day $d (%s), solar noon at $tsouth (%s)\n", _fmt_hr(24 * ($d - int($d)), $lon), _fmt_hr($tsouth, $lon);
+      printf $trace "For day $d (%s), GMST0 $gmst0 %s %s\n",            _fmt_hr(24 * ($d - int($d)), $lon), _fmt_angle($gmst0  ), _fmt_dur($gmst0   / 15);
+      printf $trace "For day $d (%s), sidereal time $sidtime, %s %s\n", _fmt_hr(24 * ($d - int($d)), $lon), _fmt_angle($sidtime), _fmt_dur($sidtime / 15);
+      printf $trace "For day $d (%s), right asc $sRA %s %s\n",          _fmt_hr(24 * ($d - int($d)), $lon), _fmt_angle($sRA    ), _fmt_dur($sRA     / 15);
+      printf $trace "For day $d (%s), solar noon at $tsouth (%s)\n",    _fmt_hr(24 * ($d - int($d)), $lon), _fmt_hr($tsouth, $lon);
     }
     # Do correction to upper limb, if necessary
     if ($upper_limb) {
@@ -674,6 +677,12 @@ sub _sunrise_sunset {
 
     my $cost = (sind($altit) - sind($lat) * sind($sdec))
                / (cosd($lat) * cosd($sdec));
+
+    if ($trace) {
+      print $trace "altit = $altit, sind(altit) = ", sind($altit), ", lat = $lat, sind(lat) = ", sind($lat), "\n";
+      print $trace "sdec = $sdec, sind(sdec) = ", sind($sdec), ", lat = $lat, cosd(lat) = ", cosd($lat), "\n";
+      print $trace "sdec = $sdec, cosd(sdec) = ", cosd($sdec), ", cost = $cost\n";
+    }
 
     my $t;
     my $season = 0;
@@ -734,7 +743,7 @@ sub _sunrise_sunset {
     #
 sub GMST0 {
     my ($d) = @_;
-    my $sidtim0 = revolution( ( 180.0 + 356.0470 + 282.9404 ) + ( 0.9856002585 + 4.70935E-5 ) * $d );
+    my $sidtim0 = revolution( ( 180.0 + 356.0470 + 282.9404 ) + ( 0.9856002585 + 4.70935E-5 ) * $d);
     return $sidtim0;
 }
 
@@ -823,7 +832,7 @@ sub sun_RA_dec {
     my ( $r, $lon ) = sunpos($d);
     if ($trace) {
       #my $datetime = DateTime->new(year => 1999, month => 12, day => 31)->add(days => $d)->ymd;
-      printf $trace "For day $d (%s), solar noon at ecliptic longitude $lon\n", _fmt_hr(24 * ($d - int($d)), $lon_noon),;
+      printf $trace "For day $d (%s), solar noon at ecliptic longitude $lon %s\n", _fmt_hr(24 * ($d - int($d)), $lon_noon), _fmt_angle($lon);
     }
 
     # Compute ecliptic rectangular coordinates (z=0)
@@ -1010,7 +1019,7 @@ sub convert_hour {
 
     my ( $hour_rise_ut, $hour_set_ut ) = @_;
     my $seconds_rise = floor( $hour_rise_ut * 60 * 60 );
-    my $seconds_set  = floor( $hour_set_ut * 60 * 60 );
+    my $seconds_set  = floor( $hour_set_ut  * 60 * 60 );
 
     return ( $seconds_rise, $seconds_set );
 }
@@ -1051,12 +1060,17 @@ sub _fmt_hr {
   $utc        -= $mn_utc;      $lmt        -= $mn_lmt;
   $utc        *= 60;           $lmt        *= 60;
   my $sc_utc   = floor($utc);  my $sc_lmt   = floor($lmt);
-  return sprintf("%02d:%02d:%02d %f h %f d UTC %02d:%02d:%02d %f h %f d LMT", $hr_utc, $mn_utc, $sc_utc, $hr_h_utc, $hr_d_utc
-                                                                            , $hr_lmt, $mn_lmt, $sc_lmt, $hr_h_lmt, $hr_d_lmt);
+  return sprintf("UTC: %02d:%02d:%02d %f h %f d, LMT: %02d:%02d:%02d %f h %f d", $hr_utc, $mn_utc, $sc_utc, $hr_h_utc, $hr_d_utc
+                                                                               , $hr_lmt, $mn_lmt, $sc_lmt, $hr_h_lmt, $hr_d_lmt);
 }
 
 sub _fmt_dur {
   my ($dur) = @_;
+  my $sign = '';
+  if ($dur < 0) {
+    $sign = '-';
+    $dur *= -1;
+  }
   my $hr = floor($dur);
   $dur  -= $hr;
   $dur  *= 60;
@@ -1064,7 +1078,24 @@ sub _fmt_dur {
   $dur  -= $mn;
   $dur  *= 60;
   my $sc = floor($dur);
-  return sprintf("%02d h %02d mn %02d s", $hr, $mn, $sc);
+  return sprintf("%s%02d h %02d mn %02d s", $sign, $hr, $mn, $sc);
+}
+
+sub _fmt_angle {
+  my ($angle) = @_;
+  my $sign = '';
+  if ($angle < 0) {
+    $sign = '-';
+    $angle *= -1;
+  }
+  my $hr = floor($angle);
+  $angle  -= $hr;
+  $angle  *= 60;
+  my $mn = floor($angle);
+  $angle  -= $mn;
+  $angle  *= 60;
+  my $sc = floor($angle);
+  return sprintf(q<%s%02d°%02d'%02d">, $sign, $hr, $mn, $sc);
 }
 
 1962; # Hint: sung by RZ, better known as BD
