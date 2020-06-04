@@ -44,7 +44,7 @@ TEST
 plan (tests => scalar @tests);
 
 foreach (@tests) {
-  my ($lon, $lat, $precise, $dd, $res) = split ' ', $_;
+  my ($lon, $lat, $precise, $dd, $expected) = split ' ', $_;
   my $sunset = DateTime::Event::Sunrise->sunset(longitude  => $lon,
                                                  latitude  => $lat,
                                                  precise   => $precise,
@@ -53,10 +53,11 @@ foreach (@tests) {
   my  $day =  DateTime->new(year => 2008, month => 3, day => $dd, time_zone => 'UTC');
   my  $set = $sunset->next($day);
   # fuzz factor ± 1 mn
+  my  $sunset    = $set->clone                        ->strftime("%H:%M:%S");
   my  $sunset_lo = $set->clone->subtract(minutes => 1)->strftime("%H:%M:%S");
   my  $sunset_hi = $set->clone->add     (minutes => 1)->strftime("%H:%M:%S");
 
-  ok ($sunset_lo le $res && $sunset_hi ge $res);
+  ok ($sunset_lo le $expected && $sunset_hi ge $expected, "comparing $sunset with $expected");
 
 }
 

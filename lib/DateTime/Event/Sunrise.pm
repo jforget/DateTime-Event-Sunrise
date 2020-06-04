@@ -541,8 +541,15 @@ sub _sunrise {
         for my $counter (1..9) {
           # 9 is a arbitrary value to stop runaway loops. Normally, we should leave at the second or third iteration
           my $h2_utc;
-          ($h2_utc, undef, $rise_season) = _sunrise_sunset( $d + $h1_lmt / 24, $self->{longitude}, $self->{latitude}, $altit,
-                                                                     15.04107, $self->{upper_limb}, $silent, $trace, $revsub);
+          ($h2_utc, undef, $rise_season) = _sunrise_sunset( $d + $h1_lmt / 24
+                                                          , $self->{longitude}                                    
+                                                          , $self->{latitude}
+                                                          , $altit
+                                                          , 15.04107
+                                                          , $self->{upper_limb}
+                                                          , $silent
+                                                          , $trace
+                                                          , $revsub);
           if ($rise_season != 0) {
             $h1_utc = $h2_utc;
             last;
@@ -573,8 +580,15 @@ sub _sunrise {
         for my $counter (1..9) {
           # 9 is a arbitrary value to stop runaway loops. Normally, we should leave at the second or third iteration
           my $h4_utc;
-          (undef, $h4_utc, $set_season) = _sunrise_sunset( $d + $h3_lmt / 24, $self->{longitude}, $self->{latitude}, $altit,
-                                                                     15.04107, $self->{upper_limb}, $silent, $trace, $revsub);
+          (undef, $h4_utc, $set_season) = _sunrise_sunset( $d + $h3_lmt / 24
+                                                         , $self->{longitude}
+                                                         , $self->{latitude}
+                                                         , $altit
+                                                         , 15.04107
+                                                         , $self->{upper_limb}
+                                                         , $silent
+                                                         , $trace
+                                                         , $revsub);
           if ($set_season != 0) {
             $h3_utc = $h4_utc;
             last;
@@ -662,10 +676,10 @@ sub _sunrise_sunset {
     my $sradius = 0.2666 / $sr;
 
     if ($trace) {
-      printf $trace "For day $d (%s), GMST0 $gmst0 %s %s\n",            _fmt_hr(24 * ($d - int($d)), $lon), _fmt_angle($gmst0  ), _fmt_dur($gmst0   / 15);
-      printf $trace "For day $d (%s), sidereal time $sidtime, %s %s\n", _fmt_hr(24 * ($d - int($d)), $lon), _fmt_angle($sidtime), _fmt_dur($sidtime / 15);
-      printf $trace "For day $d (%s), right asc $sRA %s %s\n",          _fmt_hr(24 * ($d - int($d)), $lon), _fmt_angle($sRA    ), _fmt_dur($sRA     / 15);
-      printf $trace "For day $d (%s), solar noon at $tsouth (%s)\n",    _fmt_hr(24 * ($d - int($d)), $lon), _fmt_hr($tsouth, $lon);
+      printf $trace "For day $d (%s), GMST0 $gmst0 %s %s\n",            _fmt_hr(24 * ($d - int($d)), $lon, 0), _fmt_angle($gmst0  ), _fmt_dur($gmst0   / 15);
+      printf $trace "For day $d (%s), sidereal time $sidtime, %s %s\n", _fmt_hr(24 * ($d - int($d)), $lon, 0), _fmt_angle($sidtime), _fmt_dur($sidtime / 15);
+      printf $trace "For day $d (%s), right asc $sRA %s %s\n",          _fmt_hr(24 * ($d - int($d)), $lon, 0), _fmt_angle($sRA    ), _fmt_dur($sRA     / 15);
+      printf $trace "For day $d (%s), solar noon at $tsouth (%s)\n",    _fmt_hr(24 * ($d - int($d)), $lon, 0), _fmt_hr($tsouth, $lon, 0);
     }
     # Do correction to upper limb, if necessary
     if ($upper_limb) {
@@ -1049,8 +1063,16 @@ sub _convert_1_hour {
 }
 
 sub _fmt_hr {
-  my ($utc, $lon) = @_;
-  my $lmt = $utc + $lon / 15;
+  my ($hr, $lon, $is_lmt) = @_;
+  my ($lmt, $utc);
+  if ($is_lmt) {
+    $lmt = $hr;
+    $utc = $lmt - $lon / 15;
+  }
+  else {
+    $utc = $hr;
+    $lmt = $utc + $lon / 15;
+  }
   my $hr_h_utc = $utc;         my $hr_h_lmt = $lmt;
   my $hr_d_utc = $utc / 24;    my $hr_d_lmt = $lmt / 24;
   my $hr_utc   = floor($utc);  my $hr_lmt   = floor($lmt);

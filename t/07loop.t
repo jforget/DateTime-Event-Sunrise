@@ -62,14 +62,16 @@ my $sunset = DateTime::Event::Sunrise ->new(
 my $tmp_rise = $sunrise->sunrise_datetime($dt2);
 my $tmp_set  = $sunset->sunset_datetime($dt);
 
-my $res = '2015-11-26T17:23:47'; # computed with Stellarium
+my $expected = '2015-11-26T17:23:47'; # computed with Stellarium
 
+my  $sunrise_00 = $tmp_rise->clone                             ->datetime;
 my  $sunrise_lo = $tmp_rise->clone->subtract(minutes => $fudge)->datetime;
 my  $sunrise_hi = $tmp_rise->clone->add     (minutes => $fudge)->datetime;
-ok ($sunrise_lo le $res && $sunrise_hi ge $res);
+ok ($sunrise_lo le $expected && $sunrise_hi ge $expected, "comparing $sunrise_00 with $expected");
 
-$res = '2015-11-27T06:35:20'; # computed with Stellarium
+$expected = '2015-11-27T06:35:20'; # computed with Stellarium
 
+my  $sunset_00 = $tmp_set->clone                             ->datetime;
 my  $sunset_lo = $tmp_set->clone->subtract(minutes => $fudge)->datetime;
 my  $sunset_hi = $tmp_set->clone->add     (minutes => $fudge)->datetime;
-ok ($sunset_lo le $res && $sunset_hi ge $res);
+ok ($sunset_lo le $expected && $sunset_hi ge $expected, "comparing $sunset_00 with $expected");
