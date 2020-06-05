@@ -642,25 +642,35 @@ sub _sunrise {
 
 }
 
-    #
-    #
-    # FUNCTIONAL SEQUENCE for _sunrise_sunset
-    #
-    # _GIVEN
-    #
-    #  days since Jan 0 2000, longitude, latitude, reference sun height $h and the "upper limb" and "silent" flags
-    # _THEN
-    #
-    #  Compute the sunrise/sunset times for that day
-    #
-    # _RETURN
-    #
-    #  sunrise and sunset times as hours (GMT Time)
-    #  season flag: -1 for polar night, +1 for midnight sun, 0 for day and night
-    #
+#
+#
+# FUNCTIONAL SEQUENCE for _sunrise_sunset
+#
+# _GIVEN
+#
+#  days since Jan 0 2000,
+#    the fractional part is the UTC time of day. E.g.  7458.66667 represents 2020-06-01T16:00:00 UTC
+#  longitude,
+#  latitude,
+#  reference sun height,
+#     all three in decimal degrees
+#  angular speed
+#     either Earth's spin 15.04107 degrees per hour or the combination or Earth's spin with Earth-Sun mean orbital speed 15 degrees per hour
+# "upper limb" flag
+#  and "silent" flag
+#
+# _THEN
+#
+#  Compute the sunrise/sunset times for that day
+#
+# _RETURN
+#
+#  sunrise and sunset times as hours (GMT Time)
+#  season flag: -1 for polar night, +1 for midnight sun, 0 for day and night
+#
 sub _sunrise_sunset {
 
-    my ( $d, $lon, $lat, $altit, $h, $upper_limb, $silent, $trace, $revsub ) = @_;
+    my ( $d, $lon, $lat, $altit, $ang_spd, $upper_limb, $silent, $trace, $revsub ) = @_;
 
     # Compute local sidereal time of this moment
     my $gmst0   = GMST0($d);
@@ -718,7 +728,7 @@ sub _sunrise_sunset {
     }
     else {
       my $arc = acosd($cost);    # The diurnal arc
-      $t = $arc / $h;            # Time to traverse the diurnal arc, hours
+      $t = $arc / $ang_spd;      # Time to traverse the diurnal arc, hours
       if ($trace) {
         printf $trace "Diurnal arc $arc -> $t hours (%s)\n", _fmt_dur($t);
       }
@@ -1088,6 +1098,11 @@ sub _fmt_hr {
                                                                                , $hr_lmt, $mn_lmt, $sc_lmt, $hr_h_lmt, $hr_d_lmt);
 }
 
+#
+# Formatting a duration in hours, minutes, seconds.
+# Also used for angles with a 24-hour scale instead of the usual 360-degree scale
+# (right ascension, sidereal time...)
+#
 sub _fmt_dur {
   my ($dur) = @_;
   my $sign = '';
