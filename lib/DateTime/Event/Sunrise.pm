@@ -664,13 +664,15 @@ sub _sunrise_sunset {
 
     # Compute local sidereal time of this moment
     my $gmst0   = GMST0($d);
-    my $sidtime = revolution($gmst0 + 180.0 + $lon);
+    #my $sidtime = revolution($gmst0 + 180.0 + $lon);
+    my $sidtime = revolution($gmst0 + 180.0);
 
     # Compute Sun's RA + Decl + distance at this moment
     my ($sRA, $sdec, $sr) = sun_RA_dec($d, $lon, $trace);
 
-    # Compute time when Sun is at south - in hours UT
-    my $tsouth  = 12.0 - $revsub->( $sidtime - $sRA ) / 15;
+    # Compute time when Sun is at south - in hours (LMT then UTC)
+    my $tsouth_lmt  = 12.0 - $revsub->( $sidtime - $sRA ) / 15;
+    my $tsouth      = $tsouth_lmt - $lon / 15;
 
     # Compute the Sun's apparent radius, degrees
     my $sradius = 0.2666 / $sr;
