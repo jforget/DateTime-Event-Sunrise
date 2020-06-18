@@ -482,19 +482,15 @@ sub _previous_sunset {
 # initially compute sunrise/sunset (using division
 # by 15.04107 instead of 15.0) then recompute rise/set time
 # using exact moment last computed. IF precise is set
-# to zero devide by 15.0 (only once)
+# to zero divide by 15.0 (only once)
 #
-# If using the precise algorithm, the $want_sunrise and $want_unset booleans control the computation
+# If using the precise algorithm, the $want_sunrise and $want_sunset booleans control the computation
 # of the corresponding events, to eliminate computations that will be discarded upon return
 # from the sub (that is, "stored" into undef).
 # These booleans are not used for the basic algorithm.
 #
 # The $silent boolean, if provided, override the silent attribute of the sunrise object
 # to control the emission of warnings.
-#
-# Bug in this sub, I was blindly setting the hour and min without
-# checking if it was neg. a neg. value for hours/min is not correct
-# I changed the routine to use a duration then add the duration.
 #
 # _RETURN
 #
@@ -538,7 +534,7 @@ sub _sunrise {
 
       if ($want_sunrise) {
         if ($trace) {
-          printf $trace "Precise sunrise computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
+          printf $trace "\nPrecise sunrise computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
         }
         # This is the initial start
 
@@ -579,7 +575,7 @@ sub _sunrise {
 
       if ($want_sunset) {
         if ($trace) {
-          printf $trace "Precise sunset computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
+          printf $trace "\nPrecise sunset computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
         }
         my $h3_lmt = 12; # LMT decimal hours, noon then the successive values of sunset
         my $h3_utc;      # UTC decimal hours, noon LMT then the successive values of sunset
@@ -621,7 +617,7 @@ sub _sunrise {
     }
     else {
         if ($trace) {
-          printf $trace "Basic computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
+          printf $trace "\nBasic computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
         }
         my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
         my $revsub = \&rev180; # normalizing angles around 0 degrees
@@ -678,6 +674,10 @@ sub _sunrise_sunset {
 
     my ( $d, $lon, $lat, $altit, $ang_spd, $upper_limb, $silent, $trace, $revsub ) = @_;
 
+    if ($trace) {
+      printf $trace "\n";
+    }
+
     # Compute local sidereal time of this moment
     my $gmst0   = GMST0($d);
     #my $sidtime = revolution($gmst0 + 180.0 + $lon);
@@ -697,6 +697,7 @@ sub _sunrise_sunset {
       printf $trace "For day $d (%s), GMST0 $gmst0 %s %s\n",            _fmt_hr(24 * ($d - int($d)), $lon, 0), _fmt_angle($gmst0  ), _fmt_dur($gmst0   / 15);
       printf $trace "For day $d (%s), sidereal time $sidtime, %s %s\n", _fmt_hr(24 * ($d - int($d)), $lon, 0), _fmt_angle($sidtime), _fmt_dur($sidtime / 15);
       printf $trace "For day $d (%s), right asc $sRA %s %s\n",          _fmt_hr(24 * ($d - int($d)), $lon, 0), _fmt_angle($sRA    ), _fmt_dur($sRA     / 15);
+      printf $trace "For day $d (%s), declination $sdec %s %s\n",       _fmt_hr(24 * ($d - int($d)), $lon, 0), _fmt_angle($sdec   ), _fmt_dur($sdec    / 15);
       printf $trace "For day $d (%s), solar noon at $tsouth (%s)\n",    _fmt_hr(24 * ($d - int($d)), $lon, 0), _fmt_hr($tsouth, $lon, 0);
     }
     # Do correction to upper limb, if necessary
