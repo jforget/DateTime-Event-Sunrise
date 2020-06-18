@@ -50,6 +50,7 @@ sub new {
           },
           iteration  => { type => SCALAR, default => '0' },
           precise    => { type => SCALAR, default => '0' },
+          algo       => { type => SCALAR, default => 'Schlyter', regex => qr/^(?:Schlyter|Stellarium)$/ },
           upper_limb => { type => SCALAR, default => '0' },
           silent     => { type => SCALAR, default => '0' },
           trace      => { type => GLOB | GLOBREF | SCALAR, default => '0' },
@@ -506,6 +507,7 @@ sub _sunrise {
     my $cloned_dt = $dt->clone;
     my $altit     = $self->{altitude};
     my $precise   = defined( $self->{precise} ) ? $self->{precise} : 0;
+    my $algo      = defined( $self->{algo}    ) ? $self->{algo}    : 'Schlyter';
     my $trace     = defined( $self->{trace}   ) ? $self->{trace}   : 0;
     unless (defined $silent) {
       $silent    = defined( $self->{silent}  ) ? $self->{silent}  : 0;
@@ -514,6 +516,10 @@ sub _sunrise {
 
     if ($precise) {
 
+      my $ang_speed = 15.04107;
+      if ($algo eq 'Stellarium') {
+        $ang_speed = 15;
+      }
       my $d = days_since_2000_Jan_0($cloned_dt) - $self->{longitude} / 360.0; # UTC decimal days at midnight LMT
       my $tmp_dt1 = DateTime->new(
         year      => $dt->year,
@@ -545,7 +551,7 @@ sub _sunrise {
                                                           , $self->{longitude}                                    
                                                           , $self->{latitude}
                                                           , $altit
-                                                          , 15.04107
+                                                          , $ang_speed
                                                           , $self->{upper_limb}
                                                           , $silent
                                                           , $trace
@@ -584,7 +590,7 @@ sub _sunrise {
                                                          , $self->{longitude}
                                                          , $self->{latitude}
                                                          , $altit
-                                                         , 15.04107
+                                                         , $ang_speed
                                                          , $self->{upper_limb}
                                                          , $silent
                                                          , $trace
@@ -1258,6 +1264,18 @@ and obtain a better precision.
 Default value is 0, to choose the simple algorithm.
 
 This parameter replaces the C<iteration> deprecated parameter.
+
+=item algo
+
+For the precise algorithm, use either the C<'Schlyter'> option or the C<'Stellarium'>
+option. The C<'Schlyter'> option follows closely Paul Schlyter's directives on the
+precise iterative algorithm, but gives results that do not follow closely the values
+obtained when using Stellarium. On the other hand, the C<'Stellarium'> option gives
+results that follow closely what you can get with Stellarium, but with a few
+breaks with Paul Schlyter's description of the precise algorithm.
+
+This parameter is useful only when chosing C<< precise => 1 >>. It has no effect
+when using the simple algorithm.
 
 =item upper_limb
 

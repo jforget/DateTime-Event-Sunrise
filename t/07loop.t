@@ -35,8 +35,8 @@ use DateTime::Span;
 use DateTime::SpanSet;
 use DateTime::Event::Sunrise;
 
-my $fudge = 2;
-plan tests => 2;
+my $fuzz = 2; # fuzz time in minutes
+plan tests => 4;
 my $dt = DateTime->new( year   => 2015,
                         month  =>   11,
                         day    =>   27,
@@ -47,31 +47,58 @@ my $dt2 = DateTime->new( year   => 2015,
                           );
 
 my $sunrise = DateTime::Event::Sunrise ->new(
-                     longitude  =>'177',
+                     longitude  => '177',
                      latitude   => '-37.66667',
                      altitude   => 6,
                      precise    => 1,
 );
 my $sunset = DateTime::Event::Sunrise ->new(
-                     longitude  =>'177',
+                     longitude  => '177',
                      latitude   => '-37.66667',
                      altitude   => 6,
                      precise    => 1,
                      );
 
-my $tmp_rise = $sunrise->sunrise_datetime($dt2);
-my $tmp_set  = $sunset->sunset_datetime($dt);
+my $sunrise_stl = DateTime::Event::Sunrise ->new(
+                     longitude  => '177'
+                   , latitude   => '-37.66667'
+                   , altitude   => 6
+                   , precise    => 1
+                   , algo       => 'Stellarium'
+                   );
+my $sunset_stl = DateTime::Event::Sunrise ->new(
+                     longitude  => '177'
+                   , latitude   => '-37.66667'
+                   , altitude   => 6
+                   , precise    => 1
+                   , algo       => 'Stellarium'
+                   );
+
+my $tmp_rise     = $sunrise    ->sunrise_datetime($dt2);
+my $tmp_set      = $sunset     ->sunset_datetime ($dt);
+my $tmp_rise_stl = $sunrise_stl->sunrise_datetime($dt2);
+my $tmp_set_stl  = $sunset_stl ->sunset_datetime ($dt);
 
 my $expected = '2015-11-26T17:23:47'; # computed with Stellarium
 
-my  $sunrise_00 = $tmp_rise->clone                             ->datetime;
-my  $sunrise_lo = $tmp_rise->clone->subtract(minutes => $fudge)->datetime;
-my  $sunrise_hi = $tmp_rise->clone->add     (minutes => $fudge)->datetime;
+my  $sunrise_00 = $tmp_rise->clone                            ->datetime;
+my  $sunrise_lo = $tmp_rise->clone->subtract(minutes => $fuzz)->datetime;
+my  $sunrise_hi = $tmp_rise->clone->add     (minutes => $fuzz)->datetime;
+ok ($sunrise_lo le $expected && $sunrise_hi ge $expected, "comparing $sunrise_00 with $expected");
+
+$sunrise_00 = $tmp_rise_stl->clone                            ->datetime;
+$sunrise_lo = $tmp_rise_stl->clone->subtract(minutes => $fuzz)->datetime;
+$sunrise_hi = $tmp_rise_stl->clone->add     (minutes => $fuzz)->datetime;
 ok ($sunrise_lo le $expected && $sunrise_hi ge $expected, "comparing $sunrise_00 with $expected");
 
 $expected = '2015-11-27T06:35:20'; # computed with Stellarium
 
-my  $sunset_00 = $tmp_set->clone                             ->datetime;
-my  $sunset_lo = $tmp_set->clone->subtract(minutes => $fudge)->datetime;
-my  $sunset_hi = $tmp_set->clone->add     (minutes => $fudge)->datetime;
+my  $sunset_00 = $tmp_set->clone                            ->datetime;
+my  $sunset_lo = $tmp_set->clone->subtract(minutes => $fuzz)->datetime;
+my  $sunset_hi = $tmp_set->clone->add     (minutes => $fuzz)->datetime;
+ok ($sunset_lo le $expected && $sunset_hi ge $expected, "comparing $sunset_00 with $expected");
+
+$sunset_00 = $tmp_set_stl->clone                            ->datetime;
+$sunset_lo = $tmp_set_stl->clone->subtract(minutes => $fuzz)->datetime;
+$sunset_hi = $tmp_set_stl->clone->add     (minutes => $fuzz)->datetime;
 ok ($sunset_lo le $expected && $sunset_hi ge $expected, "comparing $sunset_00 with $expected");
