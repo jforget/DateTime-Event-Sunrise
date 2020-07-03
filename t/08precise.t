@@ -27,12 +27,8 @@
 #     Inc., <https://www.fsf.org/>.
 #
 use strict;
-use POSIX qw(floor ceil);
 use Test::More;
 use DateTime;
-use DateTime::Duration;
-use DateTime::Span;
-use DateTime::SpanSet;
 use DateTime::Event::Sunrise;
 
 my $fuzz = 30; # fuzz time in seconds
@@ -71,14 +67,15 @@ my $Boston = DateTime::Event::Sunrise->new(
                    , latitude  =>  42.3358 # 42°20'08"
                    , altitude  => -0.833
                    , algo      => 'Stellarium'
-                   , precise   => 1);
+                   , precise   => 1
+                   );
 for my $ln (@Boston_data) {
   check($Boston, 'America/New_York', $ln, 'Boston');
 }
 
 my $Anchorage = DateTime::Event::Sunrise ->new(
-                     longitude  => -149.9
-                   , latitude   =>   61.2
+                     longitude  => -149.9 # 149°54'
+                   , latitude   =>   61.2 #  61°12'
                    , precise    => 1,
                    , algo       => 'Stellarium'
                    );
@@ -96,6 +93,9 @@ for my $ln (@Fairbanks_data) {
   check($Fairbanks, 'America/Anchorage', $ln, 'Fairbanks');
 }
 
+#
+# Data compiled from Stellarium, cross-checked with Astro::PAL + Astro::Coords and with the NOOA's solar calculator
+#
 sub load_Boston {
   return split "\n", <<'EOF';
     2020-01-01  07:13:59   16:22:42
@@ -143,6 +143,9 @@ sub load_Boston {
 EOF
 }
 
+#
+# Data compiled from Stellarium, cross-checked with the NOOA's solar calculator
+#
 sub load_Anchorage {
   return split "\n", <<'EOF';
     2020-01-01  10:13:57   15:52:38
@@ -190,6 +193,9 @@ sub load_Anchorage {
 EOF
 }
 
+#
+# Data compiled from Stellarium, cross-checked with the NOOA's solar calculator
+#
 sub load_Fairbanks {
   return split "\n", <<'EOF';
     2020-06-01  03:30:23   00:10:05

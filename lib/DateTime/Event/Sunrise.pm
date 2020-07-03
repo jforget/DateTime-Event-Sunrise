@@ -534,7 +534,8 @@ sub _sunrise {
 
       if ($want_sunrise) {
         if ($trace) {
-          printf $trace "\nPrecise sunrise computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
+          printf $trace "\nPrecise sunrise computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d angular speed %.5f\n",
+                        $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb}, $ang_speed;
         }
         # This is the initial start
 
@@ -575,7 +576,8 @@ sub _sunrise {
 
       if ($want_sunset) {
         if ($trace) {
-          printf $trace "\nPrecise sunset computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
+          printf $trace "\nPrecise sunset computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d angular speed %.5f\n",
+                        $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb}, $ang_speed;
         }
         my $h3_lmt = 12; # LMT decimal hours, noon then the successive values of sunset
         my $h3_utc;      # UTC decimal hours, noon LMT then the successive values of sunset
