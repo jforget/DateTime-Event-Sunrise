@@ -510,8 +510,38 @@ sub _sunrise {
     }
     $cloned_dt->set_time_zone('floating');
 
-    if ($precise) {
+    if (!$precise) {
+      if ($trace) {
+        printf $trace "\nBasic computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd
+                                                                                                      , $self->{longitude}
+                                                                                                      , $self->{latitude}
+                                                                                                      , $self->{altitude}
+                                                                                                      , $self->{upper_limb};
+      }
+      my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
+      my $revsub = \&rev180; # normalizing angles around 0 degrees
+      my ( $h1, $h2, $season ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb}, $silent, $trace, $revsub);
+      my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
+      my $rise_dur = DateTime::Duration->new( seconds => $seconds_rise );
+      my $set_dur  = DateTime::Duration->new( seconds => $seconds_set );
+      my $tmp_dt1  = DateTime->new(
+        year      => $dt->year,
+        month     => $dt->month,
+        day       => $dt->day,
+        hour      => 0,
+        minute    => 0,
+        time_zone => 'UTC'
+      );
 
+      my $rise_time = $tmp_dt1 + $rise_dur;
+      my $set_time  = $tmp_dt1 + $set_dur;
+      my $tz        = $dt->time_zone;
+      $rise_time->set_time_zone($tz) unless $tz->is_floating;
+      $set_time ->set_time_zone($tz) unless $tz->is_floating;
+      return ( $rise_time, $set_time, $season, $season );
+    }
+
+    else {
       my $ang_speed = 15.04107;
       if ($algo eq 'Stellarium') {
         $ang_speed = 15;
@@ -616,32 +646,6 @@ sub _sunrise {
       }
 
       return ( $rise_time, $set_time, $rise_season, $set_season );
-    }
-    else {
-        if ($trace) {
-          printf $trace "\nBasic computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb};
-        }
-        my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
-        my $revsub = \&rev180; # normalizing angles around 0 degrees
-        my ( $h1, $h2, $season ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb}, $silent, $trace, $revsub);
-        my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
-        my $rise_dur = DateTime::Duration->new( seconds => $seconds_rise );
-        my $set_dur  = DateTime::Duration->new( seconds => $seconds_set );
-        my $tmp_dt1  = DateTime->new(
-          year      => $dt->year,
-          month     => $dt->month,
-          day       => $dt->day,
-          hour      => 0,
-          minute    => 0,
-          time_zone => 'UTC'
-        );
-
-        my $rise_time = $tmp_dt1 + $rise_dur;
-        my $set_time  = $tmp_dt1 + $set_dur;
-        my $tz        = $dt->time_zone;
-        $rise_time->set_time_zone($tz) unless $tz->is_floating;
-        $set_time ->set_time_zone($tz) unless $tz->is_floating;
-        return ( $rise_time, $set_time, $season, $season );
     }
 
 }
