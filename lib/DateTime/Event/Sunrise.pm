@@ -483,6 +483,10 @@ sub _previous_sunset {
 # by 15.04107 instead of 15.0) then recompute rise/set time
 # using exact moment last computed. IF precise is set
 # to zero divide by 15.0 (only once)
+# UPDATE: actually, with the precise algorithm as currently implemented
+# the 15.0 value gives better results than the 15.04107 value. Results
+# cross-checked with the NOAA's solar calculator, with Astro::Coords + Astro::PAL
+# and with Stellarium
 #
 # If using the precise algorithm, the $want_sunrise and $want_sunset booleans control the computation
 # of the corresponding events, to eliminate computations that will be discarded upon return
@@ -542,10 +546,7 @@ sub _sunrise {
     }
 
     else {
-      my $ang_speed = 15.04107;
-      if ($algo eq 'Stellarium') {
-        $ang_speed = 15;
-      }
+      my $ang_speed = 15.0;
       my $d = days_since_2000_Jan_0($cloned_dt) - $self->{longitude} / 360.0; # UTC decimal days at midnight LMT
       my $tmp_dt1 = DateTime->new(
         year      => $dt->year,
@@ -1367,29 +1368,29 @@ See DateTime::Set.
 =head1 EXTENDED EXAMPLES
 
   my $dt = DateTime->new( year   => 2000,
-                         month  => 6,
-                         day    => 20,
+                          month  => 6,
+                          day    => 20,
                   );
 
   my $sunrise = DateTime::Event::Sunrise ->sunrise (
                         longitude =>'-118',
-                        latitude =>'33',
-                        altitude => '-0.833',
+                        latitude  =>'33',
+                        altitude  => '-0.833',
                         precise   => '1'
                   );
 
   my $sunset = DateTime::Event::Sunrise ->sunset (
                         longitude =>'-118',
-                        latitude =>'33',
-                        altitude => '-0.833',
+                        latitude  =>'33',
+                        altitude  => '-0.833',
                         precise   => '1'
                   );
 
   my $tmp_rise = $sunrise->next( $dt );
 
   my $dt2 = DateTime->new( year   => 2000,
-                         month  => 12,
-                         day    => 31,
+                           month  => 12,
+                           day    => 31,
                    );
 
   # iterator
@@ -1488,7 +1489,7 @@ The original method only gives an approximate value of the Sun's rise/set times.
 The error rarely exceeds one or two minutes, but at high latitudes, when the Midnight Sun
 soon will start or just has ended, the errors may be much larger. If you want higher accuracy,
 you must then select the precise variant of the algorithm. This feature is new as of version 0.7. Here is
-what I have tried to accomplish with this.
+what I (module creator) have tried to accomplish with this.
 
 
 =over 4
@@ -1511,14 +1512,27 @@ Usually 2 iterations are enough, in rare cases 3 or 4 iterations may be needed.
 
 =back
 
+However, I (second module maintainer) have checked with a few external
+sources, to obtain test data. And actually, using the value 15.0 gives
+results closer to what Stellarium  and the NOAA solar calculator give.
+So I will use value 15.0, unless I find a bug in the precise algorithm
+as presently implemented.
+
 =head2 Notes on polar locations
 
-If the location is beyond either polar circle, and if the date is
-near either solstice, there can be midnight sun or polar night.
-In this case, there is neither sunrise nor sunset, and
-the module C<carp>s that the sun never rises or never sets.
-Then, it returns the time at which the sun is at its highest
-or lowest point.
+If the location is beyond either polar circle, and if the date is near
+either solstice,  there can be  midnight sun  or polar night.  In this
+case, there  is neither  sunrise nor sunset,  and the  module C<carp>s
+that the sun never  rises or never sets. Then, it  returns the time at
+which the sun is at its highest or lowest point.
+
+When computing twilights instead of  sunrises / sunsets, the limit for
+polar locations extends a little beyond the polar circle. For example,
+for  nautical twilights  (12 degrees  below the  horizon), the  limits
+where midnight sun might happen is  12 degrees southward of the Arctic
+Circle  and 12  degrees northward  of the  Antarctic Circle,  that is,
+about 54° latitude instead of 66°33′.
+
 
 =head1 DEPENDENCIES
 
@@ -1564,7 +1578,8 @@ I guess that it is linked with a ambiguous value resulting from a 0/0 computatio
 Using a longitude of 177 degrees, or any longitude near the 180 meridian, may also give
 curious results, especially with the precise algorithm.
 
-The precise algorithm should be overhauled.
+The precise algorithm should be thoroughly analysed, to understand why
+the value 15.04107 does not give the expected results.
 
 =head1 AUTHORS
 
@@ -1584,6 +1599,11 @@ for providing help with converting Paul's C code to perl.
 
 for providing the the interface to the DateTime::Set
 module.
+
+=item Eric Jensen
+
+for  positive and  interesting advices  about the  new version  of the
+module
 
 =back
 
@@ -1669,15 +1689,21 @@ perl(1).
 
 DateTime Web page at L<http://datetime.perl.org/>
 
-DateTime::Set
+L<DateTime::Set>
 
-DateTime::SpanSet
+L<DateTime::SpanSet>
 
-Astro::Sunrise
+L<Astro::Sunrise>
 
-DateTime::Event::Jewish::Sunrise
+L<DateTime::Event::Jewish::Sunrise>
+
+L<Astro::Coords>
+
+L<Astro::PAL>
 
 Paul Schlyter's homepage at L<https://stjarnhimlen.se/english.html>
+
+The NOAA solar calculator at L<https://www.esrl.noaa.gov/gmd/grad/solcalc/>
 
 =cut
 
