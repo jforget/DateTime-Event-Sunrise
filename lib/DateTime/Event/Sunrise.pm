@@ -514,15 +514,24 @@ sub _sunrise {
 
     if (!$precise) {
       if ($trace) {
-        printf $trace "\nBasic computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n", $dt->ymd
-                                                                                                      , $self->{longitude}
-                                                                                                      , $self->{latitude}
-                                                                                                      , $self->{altitude}
-                                                                                                      , $self->{upper_limb};
+        printf $trace "\nBasic computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d\n"
+                                             , $dt->ymd
+                                             , $self->{longitude}
+                                             , $self->{latitude}
+                                             , $self->{altitude}
+                                             , $self->{upper_limb};
       }
       my $d = days_since_2000_Jan_0($cloned_dt) + 0.5 - $self->{longitude} / 360.0;
       my $revsub = \&rev180; # normalizing angles around 0 degrees
-      my ( $h1, $h2, $season ) = _sunrise_sunset( $d, $self->{longitude}, $self->{latitude}, $altit, 15.0, $self->{upper_limb}, $silent, $trace, $revsub);
+      my ( $h1, $h2, $season ) = _sunrise_sunset( $d
+                                                , $self->{longitude}
+                                                , $self->{latitude}
+                                                , $altit
+                                                , 15.0
+                                                , $self->{upper_limb}
+                                                , $silent
+                                                , $trace
+                                                , $revsub);
       my ( $seconds_rise, $seconds_set ) = convert_hour( $h1, $h2 );
       my $rise_dur = DateTime::Duration->new( seconds => $seconds_rise );
       my $set_dur  = DateTime::Duration->new( seconds => $seconds_set );
@@ -563,8 +572,13 @@ sub _sunrise {
 
       if ($want_sunrise) {
         if ($trace) {
-          printf $trace "\nPrecise sunrise computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d angular speed %.5f\n",
-                        $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb}, $ang_speed;
+          printf $trace "\nPrecise sunrise computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d angular speed %.5f\n"
+                                                         , $dt->ymd
+                                                         , $self->{longitude}
+                                                         , $self->{latitude}
+                                                         , $self->{altitude}
+                                                         , $self->{upper_limb}
+                                                         , $ang_speed;
         }
         # This is the initial start
 
@@ -574,7 +588,7 @@ sub _sunrise {
           # 9 is a arbitrary value to stop runaway loops. Normally, we should leave at the second or third iteration
           my $h2_utc;
           ($h2_utc, undef, $rise_season) = _sunrise_sunset( $d + $h1_lmt / 24
-                                                          , $self->{longitude}                                    
+                                                          , $self->{longitude}
                                                           , $self->{latitude}
                                                           , $altit
                                                           , $ang_speed
@@ -605,8 +619,13 @@ sub _sunrise {
 
       if ($want_sunset) {
         if ($trace) {
-          printf $trace "\nPrecise sunset computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d angular speed %.5f\n",
-                        $dt->ymd, $self->{longitude}, $self->{latitude}, $self->{altitude}, $self->{upper_limb}, $ang_speed;
+          printf $trace "\nPrecise sunset computation for %s, lon %.3f, lat %.3f, altitude %.3f, upper limb %d angular speed %.5f\n"
+                                                        , $dt->ymd
+                                                        , $self->{longitude}
+                                                        , $self->{latitude}
+                                                        , $self->{altitude}
+                                                        , $self->{upper_limb}
+                                                        , $ang_speed;
         }
         my $h3_lmt = 12; # LMT decimal hours, noon then the successive values of sunset
         my $h3_utc;      # UTC decimal hours, noon LMT then the successive values of sunset
@@ -751,10 +770,8 @@ sub _sunrise_sunset {
     my $hour_rise_ut = $tsouth - $t;
     my $hour_set_ut  = $tsouth + $t;
     if ($trace) {
-      printf $trace "For day $d (%s), sunrise at $hour_rise_ut (%s)\n", _fmt_hr(24 * ($d - int($d)), $lon),
-                   _fmt_hr($hour_rise_ut, $lon);
-      printf $trace "For day $d (%s), sunset  at $hour_set_ut (%s)\n",  _fmt_hr(24 * ($d - int($d)), $lon),
-                   _fmt_hr($hour_set_ut , $lon);
+      printf $trace "For day $d (%s), sunrise at $hour_rise_ut (%s)\n", _fmt_hr(24 * ($d - int($d)), $lon), _fmt_hr($hour_rise_ut, $lon);
+      printf $trace "For day $d (%s), sunset  at $hour_set_ut (%s)\n",  _fmt_hr(24 * ($d - int($d)), $lon), _fmt_hr($hour_set_ut , $lon);
     }
     return ( $hour_rise_ut, $hour_set_ut, $season );
 
