@@ -33,25 +33,21 @@ use DateTime::Event::Sunrise;
 
 # Values for Paris (2°20'E, 48°50' N) computed with Stellarium
 my @tests = split "\n", <<'TEST';
-2.33  48.83 1 Schlyter   20 18:03:53
-2.33  48.83 1 Schlyter   21 18:05:23
-2.33  48.83 1 Schlyter   22 18:06:54
-2.33  48.83 1 Stellarium 20 18:03:53
-2.33  48.83 1 Stellarium 21 18:05:23
-2.33  48.83 1 Stellarium 22 18:06:54
-92.33 48.83 0 Schlyter   20 12:03:10
-92.33 48.83 0 Schlyter   21 12:04:41
-92.33 48.83 0 Schlyter   22 12:06:11
+2.33  48.83 1 20 18:03:53
+2.33  48.83 1 21 18:05:23
+2.33  48.83 1 22 18:06:54
+92.33 48.83 0 20 12:03:10
+92.33 48.83 0 21 12:04:41
+92.33 48.83 0 22 12:06:11
 TEST
 
 plan (tests => scalar @tests);
 
 foreach (@tests) {
-  my ($lon, $lat, $precise, $algo, $dd, $expected) = split ' ', $_;
+  my ($lon, $lat, $precise, $dd, $expected) = split ' ', $_;
   my $sunset = DateTime::Event::Sunrise->sunset(longitude  => $lon,
                                                  latitude  => $lat,
                                                  precise   => $precise,
-                                                 algo       => $algo,
                                                  upper_limb => 0,
                                                 );
   my  $day =  DateTime->new(year => 2008, month => 3, day => $dd, time_zone => 'UTC');

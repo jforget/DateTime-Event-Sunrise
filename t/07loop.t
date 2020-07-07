@@ -64,14 +64,12 @@ my $sunrise_stl = DateTime::Event::Sunrise ->new(
                    , latitude   => '-37.66667'
                    , altitude   => 6
                    , precise    => 1
-                   , algo       => 'Stellarium'
                    );
 my $sunset_stl = DateTime::Event::Sunrise ->new(
                      longitude  => '177'
                    , latitude   => '-37.66667'
                    , altitude   => 6
                    , precise    => 1
-                   , algo       => 'Stellarium'
                    );
 
 my $tmp_rise     = $sunrise    ->sunrise_datetime($dt2);

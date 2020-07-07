@@ -66,7 +66,6 @@ my $Boston = DateTime::Event::Sunrise->new(
                      longitude => -71.2044 # 71°12'15"
                    , latitude  =>  42.3358 # 42°20'08"
                    , altitude  => -0.833
-                   , algo      => 'Stellarium'
                    , precise   => 1
                    );
 for my $ln (@Boston_data) {
@@ -77,7 +76,6 @@ my $Anchorage = DateTime::Event::Sunrise ->new(
                      longitude  => -149.9 # 149°54'
                    , latitude   =>   61.2 #  61°12'
                    , precise    => 1,
-                   , algo       => 'Stellarium'
                    );
 for my $ln (@Anchorage_data) {
   check($Anchorage, 'America/Anchorage', $ln, 'Anchorage');
@@ -87,7 +85,6 @@ my $Fairbanks = DateTime::Event::Sunrise ->new(
                      longitude  => -147.71639 # 147°42'59"
                    , latitude   =>   64.83778 #  64°50'16"
                    , precise    => 1,
-                   , algo       => 'Stellarium'
                    );
 for my $ln (@Fairbanks_data) {
   check($Fairbanks, 'America/Anchorage', $ln, 'Fairbanks');
