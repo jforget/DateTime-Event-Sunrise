@@ -52,6 +52,7 @@ WriteMakefile(
                              'ExtUtils::MakeMaker' => '6.57_02', # the first version to accept several authors in an arrayref
                            },
     META_MERGE       => {
+       dynamic_config => 0,
        prereqs => {
          runtime => {
            requires => {

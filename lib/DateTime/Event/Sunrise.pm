@@ -1582,7 +1582,12 @@ Using a longitude of 177 degrees, or any longitude near the 180 meridian, may al
 curious results, especially with the precise algorithm.
 
 The precise algorithm should be thoroughly analysed, to understand why
-the value 15.04107 does not give the expected results.
+the value 15.04107 advised by Paul Schlyter does not give the expected
+results.
+
+The precise algorithm is not tested with polar locations. At least, it
+is tested with a near-polar location,  Fairbanks, at the time when the
+night is at its shortest, that is, in June.
 
 =head1 AUTHORS
 

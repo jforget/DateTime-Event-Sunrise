@@ -9,6 +9,11 @@ Check version number in:
 -- Makefile.PL
 -- lib/DateTime/Event/Sunrise.pm
 
+Check copyright years in:
+-- Makefile.PL
+-- lib/DateTime/Event/Sunrise.pm
+-- t/*.t
+
 Kwalitee: do not bother with "has known license in source file". Check all others
 
 MANIFEST: among others, check that all new test files are mentionned
@@ -19,10 +24,26 @@ Coverage: preferably with perlbrew perl-lgdbl (or later?)
 
 Changes: Type the proper release date for the latest version
 
-Build META.{json,yml} and .tar.gz with perlbrew perl-lgdbl (or other? perl-5.20.2?)
+Build META.{json,yml} and .tar.gz with perlbrew use perl-5.28.0
 
 Check contents of META.{json,yml}:
   version number (2x)
   minimum perl version
   provides (with version number)
   repository
+
+
+After release
+=============
+
+Github:
+    git tag -m 'Release to CPAN' v0.0506
+    git push --tags -u origin master
+
+Change version number in:
+-- Changes
+-- README
+-- Makefile.PL
+-- lib/DateTime/Event/Sunrise.pm
+-- checklist
+
