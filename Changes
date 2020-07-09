@@ -1,10 +1,13 @@
 Revision history for Perl extension DateTime::Event::Sunrise.
 
+0.0507  ...
+        - xxx
+
 0.0506  Thu 2020-07-09
         - add trace statements to better understand how the computation works.
         - overhaul the precise algorithm.
         - check the precise algorithm against data from the NOAA solar calculator and from Stellarium (ticket 132336)
-	- a better fix for ticket 110016, to make the algorithm really converge toward the proper value.
+        - a better fix for ticket 110016, to make the algorithm really converge toward the proper value.
 
 0.0505  Mon 2015-12-07
         - Fix ticket 110016, to prevent endless loops

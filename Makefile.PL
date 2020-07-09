@@ -73,7 +73,7 @@ WriteMakefile(
        provides       => {
            'DateTime::Event::Sunrise' => {
                 file => 'lib/DateTime/Event/Sunrise.pm',
-                version => '0.0506',
+                version => '0.0507',
            },
        },
        'meta-spec' => { version => 2 },
