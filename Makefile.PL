@@ -1,6 +1,6 @@
 #
 #     Configuration script for DateTime::Event::Sunrise
-#     Copyright © 2003, 2004, 2013, 2015, 2020 Ron Hill and Jean Forget
+#     Copyright (c) 2003, 2004, 2013, 2015, 2020, 2021 Ron Hill and Jean Forget
 #
 #     This program is distributed under the same terms as Perl 5.16.3:
 #     GNU Public License version 1 or later and Perl Artistic License
@@ -22,7 +22,7 @@
 #     GNU General Public License for more details.
 #
 #     You should have received a copy of the GNU General Public License
-#     along with this program; if not, write to the Free Software Foundation,
+#     along with this program; if not, contact the Free Software Foundation,
 #     Inc., <https://www.fsf.org/>.
 #
 use ExtUtils::MakeMaker;
@@ -82,6 +82,9 @@ WriteMakefile(
                type => 'git',
                url  => 'https://github.com/jforget/DateTime-Event-Sunrise.git',
                web  => 'https://github.com/jforget/DateTime-Event-Sunrise',
+           },
+           bugtracker => {
+               web  => 'https://github.com/jforget/DateTime-Event-Sunrise/issues',
            },
        },
     },
